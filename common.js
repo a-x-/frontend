@@ -106,7 +106,7 @@ var ArrayProxy = function (a) {
     }
     //
     this.each = Array.prototype.forEach.bind(this.v);
-    this.obj = curry(akv2okv,this.v);
+    this.obj = akv2okv.bind(this,this.v); // curry once
     //
     // ...
 }, ArrayProxyConstruct = function (o) {
