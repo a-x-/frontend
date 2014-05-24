@@ -1,0 +1,105 @@
+/**
+ * @file DS-PROMO / ${FILE_NAME}
+ * Created: 20.05.14 / 19:51
+ */
+@import "common-less";
+
+.hidden { display: none; }
+.open { display: block !important; }
+.n-imp { color: #bbb; }
+.dia { display: none; }
+.testing-shut { background: rgba(255, 0, 0, .3); }
+/**
+ * Block element (hide overflow, hide scrolls)
+ * For example, using html.fixed for modals
+ */
+.fixed { padding: 0; margin: 0; overflow: hidden !important; }
+
+a[href^="//"], a[href^="http://"], a[href^="https://"]  {
+  background: url(resources/neo-black-xtrnl-web2.svg) right no-repeat;
+  background-size: contain;
+  padding-right: 1.5em;
+  padding-left: .8em;
+  &:hover {
+    background-image: url(resources/neo-blue-xtrnl-web2.svg);
+  }
+}
+
+.shut {
+  position: fixed;
+  text-align: center;
+  font-size: xx-large;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99;
+  padding-top: 40vh;
+  top: 0;
+  left: 0;
+  text-shadow: 0 0 1px white, 0 0 20px white;
+  background: rgba(255, 255, 255, .3);
+}
+
+.bg-blur {
+  .filter(blur(1px) grayscale(100%));
+}
+
+
+.panels {
+  position: fixed;
+  top: 0;
+  z-index: 999;
+  width: 0;
+  height: 0;
+  .panel{
+    margin: 10vh 10vw;
+    width: 80vw;
+    height: 80vh;
+    background: rgba(255,255,255,0.98);
+    border: 2px solid #c0c0c0;
+    border-radius: 6px;
+    padding: 5vw;
+    display: none;
+    box-shadow: 0 0 10px 5px white;
+  }
+}
+
+form[action]{
+  padding: 5vh 5vw;
+  label {
+    display: flex;
+    width: 100%;
+    margin-bottom: 1ex;
+    justify-content: flex-start;
+    flex-direction: row;
+    font-weight: normal;
+    input {
+      flex-grow: 2;
+    }
+    span {
+      text-align: right;
+      padding-right: .8em;
+    }
+    & > * {
+      display: block;
+      flex: 1;
+    }
+  }
+}
+
+.animation.status {
+  width: 20px;
+  height: 20px;
+  background-image: url('resources/loader.svg');
+  background-repeat: no-repeat;
+  background-size: 20px 20px;
+  position: absolute;
+  display: inline-block;
+  margin: 5px;
+  transition-property: opacity;
+  transition-duration: 1s;
+}
+
+
+.ui-pnotify-history-container { display: none; }
+
+
