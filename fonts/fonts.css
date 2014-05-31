@@ -1,0 +1,29 @@
+@font-face {
+    font-family: "MyriadPro-Light";
+    src:
+        url("MyriadPro-Light.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "MyriadPro-Regular";
+    src:
+        url("MyriadPro-Regular.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "LucidaSans-Unicode";
+    src: url("Lucida_Sans_Unicode.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Mergim-5";
+    src: url("megrim-5.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
