@@ -4,6 +4,7 @@
  */
 @import "common-less";
 
+* { box-sizing: border-box; }
 .hidden { display: none; }
 .open { display: block !important; }
 .n-imp { color: #bbb; }
@@ -14,6 +15,33 @@
  * For example, using html.fixed for modals
  */
 .fixed { padding: 0; margin: 0; overflow: hidden !important; }
+
+.ul-prevent-default {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: block;
+  &>li {
+    padding: 0;
+    margin: 0;
+    display: block;
+  }
+}
+.ul-nav(@height) {
+  .ul-prevent-default;
+  .display-flex;
+  &>li {
+    .flex(1);
+    height: @height;
+    line-height: @height;
+    text-align: center;
+    display: inline-block;
+  }
+}
+menu ul, nav ul {
+  .ul-nav(5vh);
+}
 
 a[href^="//"], a[href^="http://"], a[href^="https://"]  {
   background: url(resources/neo-black-xtrnl-web2.svg) right no-repeat;
@@ -66,7 +94,7 @@ a[href^="//"], a[href^="http://"], a[href^="https://"]  {
 form[action]{
   padding: 5vh 5vw;
   label {
-    display: flex;
+    .display-flex;
     width: 100%;
     margin-bottom: 1ex;
     justify-content: flex-start;
@@ -81,7 +109,7 @@ form[action]{
     }
     & > * {
       display: block;
-      flex: 1;
+      .flex(1);
     }
   }
 }
@@ -101,5 +129,13 @@ form[action]{
 
 
 .ui-pnotify-history-container { display: none; }
+
+
+.review-block{
+  .author-face {
+    float: left;
+    margin: .5vw 1vw 0 0;
+  }
+}
 
 
