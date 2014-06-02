@@ -168,8 +168,8 @@ function delayedSetter(haystack, /**String=*/key) {
     return processorCallback;
 }
 
-
-if ($.pnotify) {
+try{
+if ($ && $.pnotify) {
     /**
      * Show notification
      * @param text string
@@ -192,7 +192,7 @@ if ($.pnotify) {
     }
     $.pnotify.DELAY = 4000;
 }
-
+}catch (e){}
 
 
 
