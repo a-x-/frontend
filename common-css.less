@@ -100,8 +100,18 @@ form[action]{
     justify-content: flex-start;
     flex-direction: row;
     font-weight: normal;
-    input {
+    input[type="text"],
+    input[type="date"],
+    input[type="datetime"],
+    input[type="file"],
+    input[type="password"],
+    input[type="email"],
+    input[type="email"] {
       flex-grow: 2;
+    }
+    input[type="checkbox"], input[type="radio"] {
+      flex-basis: 30px;
+      flex-grow: 0;
     }
     span {
       text-align: right;
@@ -138,4 +148,6 @@ form[action]{
   }
 }
 
-
+h1,h2,h3{
+  .hn;
+}
