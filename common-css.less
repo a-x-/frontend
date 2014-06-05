@@ -52,6 +52,12 @@ a[href^="//"], a[href^="http://"], a[href^="https://"]  {
     background-image: url(resources/neo-blue-xtrnl-web2.svg);
   }
 }
+.a-prevent-default {
+  .a-clear;
+  &>*{
+    .a-clear-hover;
+  }
+}
 
 .shut {
   position: fixed;
