@@ -12,12 +12,15 @@
   -webkit-animation: @val1, @val2;
 }
 
-.transition(@val) {
-  -webkit-transition: @val;
-  -moz-transition: @val;
-  -ms-transition: @val;
-  -o-transition: @val;
-  transition: @val;
+/**
+ * @version 2 Note: old usages are wrong now
+ */
+.transition(@property:all,@duration:1s,@function:ease-in-out) {
+  -webkit-transition: @property @duration @function;
+  -moz-transition: @property @duration @function;
+  -ms-transition: @property @duration @function;
+  -o-transition: @property @duration @function;
+  transition: @property @duration @function;
 }
 
 .transform(@val, @point: center) {
@@ -70,6 +73,9 @@
 .hn {
   color: #555;
   margin: 1em 0 0 0;
+}
+h1,h2,h3 {
+  .hn;
 }
 
 .animated {

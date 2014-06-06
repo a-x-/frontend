@@ -530,3 +530,39 @@ function setFormInitHandler (name, blurSelector, formData, before) {
 }
 
 
+
+/**
+ * Preload images
+ * @type {{isLoadingStarted: boolean, add: add, load: load, init: init, images: Array}}
+ */
+var imageContainer = {
+    isLoadingStarted: false,
+    add: function (srcArray) {
+        if (typeof srcArray == 'string') {
+            srcArray = [srcArray];
+        }
+        if (imageContainer.isLoadingStarted) {
+            imageContainer.load(srcArray);
+        }
+        else {
+            console.log(srcArray);
+            imageContainer.images = _.merge(imageContainer.images, srcArray);
+        }
+    },
+    load: function (srcArray) {
+        (srcArray || imageContainer.images).forEach(function (el) {
+            console.log(
+                el,
+                $('<img/>', {src: el, style: 'display:none;'}).appendTo('body')[0]
+            );
+        });
+    },
+    init: function () {
+        $().ready(function () {
+            imageContainer.load();
+            imageContainer.isLoadingStarted = true;
+        });
+    },
+    images: []
+};
+imageContainer.init();

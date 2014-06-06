@@ -16,6 +16,44 @@
  */
 .fixed { padding: 0; margin: 0; overflow: hidden !important; }
 
+/**
+ * Links
+ */
+.xtrnl-lnk { }
+a[href^="//"], a[href^="http://"], a[href^="https://"]  { .xtrnl-lnk; }
+
+.xtrnl-lnk {
+  background: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-black-xtrnl-web2.svg) right no-repeat;
+  background-size: contain;
+  padding-right: 1.5em;
+  padding-left: .8em;
+  &:hover {
+    background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-blue-xtrnl-web2.svg);
+  }
+}
+.a-prevent-default {
+  .a-clear;
+  &:hover{
+    .a-clear-hover;
+  }
+}
+//
+// twitter like behaviour
+// FOOTER LINKS BEHAVIOR & STYLE
+footer a[href^="//"], footer a[href^="http://"], footer a[href^="https://"] {
+  background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-gray-xtrnl-web2.svg);
+  color: gray;
+}
+footer:hover a[href^="//"], footer:hover a[href^="http://"], footer:hover a[href^="https://"] {
+  background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-black-xtrnl-web2.svg);
+  color: black;
+}
+footer a[href^="//"]:hover, a[href^="http://"]:hover, a[href^="https://"]:hover {
+  background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-blue-xtrnl-web2.svg);
+  color: blue;
+}
+
+
 .ul-prevent-default {
   list-style: none;
   padding: 0;
@@ -28,28 +66,45 @@
     display: block;
   }
 }
-.ul-nav(@height) {
+.ul-nav(@height: 8hv,@height-min: 20px) {
   .ul-prevent-default;
   .display-flex;
   &>li {
     .flex(1);
     height: @height;
     line-height: @height;
+    min-height: @height-min;
     text-align: center;
     display: inline-block;
   }
 }
 menu ul, nav ul {
-  .ul-nav(5vh);
+//  .ul-nav(5vh);
 }
 
-a[href^="//"], a[href^="http://"], a[href^="https://"]  {
-  background: url(resources/neo-black-xtrnl-web2.svg) right no-repeat;
-  background-size: contain;
-  padding-right: 1.5em;
-  padding-left: .8em;
-  &:hover {
-    background-image: url(resources/neo-blue-xtrnl-web2.svg);
+/**
+ * Sidebars
+ */
+.bar-wrapper {
+  .display-flex;
+  &>* {
+    flex-shrink: 1;
+    flex-grow: 1;
+  }
+  &>*:not(.no-bar){
+    flex-basis: 33%;
+  }
+  .no-bar(@width-center: 800px) {
+//    width: @width-center !important;
+    flex-basis: @width-center;// !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  &>.block {
+    margin: 6vh 0;
+  }
+  &:first-child {
+    margin: 0;
   }
 }
 .a-prevent-default {
@@ -59,6 +114,56 @@ a[href^="//"], a[href^="http://"], a[href^="https://"]  {
   }
 }
 
+/**
+ * Slider
+ */
+.slider(@width: 800px, @height: 35vh) {
+  display: block;
+  height: @height;
+  background: url("//subtlepatterns.com/patterns/graphy.png");
+  ul {.ul-prevent-default;}
+  .nav-arrow {
+    width: 10%;
+    position: absolute;
+    height: 35vh;
+    margin-top: -@height;
+    font-size: 100px;
+    line-height: @height;
+    text-align: center;
+    opacity: 0;
+    color: white;
+    .transition(opacity);
+    &:hover{
+      opacity: .3;
+    }
+    &.left{ left: 0; }
+    &.right{ right: 0; }
+  }
+  .nav-hub {
+    position: absolute;
+    bottom: 10px;
+  }
+  .nav-item {
+    @size: 12px;
+    width: @size;
+    height: @size;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: inline-block;
+    margin: 0 @size / 4;
+    &.current {
+      background: white;
+    }
+    &:hover{
+      border-color: white;
+    }
+  }
+}
+
+
+/**
+ * Overlaid dummy
+ */
 .shut {
   position: fixed;
   text-align: center;
@@ -72,7 +177,6 @@ a[href^="//"], a[href^="http://"], a[href^="https://"]  {
   text-shadow: 0 0 1px white, 0 0 20px white;
   background: rgba(255, 255, 255, .3);
 }
-
 .bg-blur {
   .filter(blur(1px) grayscale(100%));
 }
@@ -99,6 +203,10 @@ a[href^="//"], a[href^="http://"], a[href^="https://"]  {
 
 form[action]{
   padding: 5vh 5vw;
+  width: 100%;
+  &.form-sm {
+    padding: 2vh 0;
+  }
   label {
     .display-flex;
     width: 100%;
@@ -133,7 +241,7 @@ form[action]{
 .animation.status {
   width: 20px;
   height: 20px;
-  background-image: url('resources/loader.svg');
+  background-image: url('/vendor/a-x-/invntrm-common-frontend/resources/loader.svg');
   background-repeat: no-repeat;
   background-size: 20px 20px;
   position: absolute;
@@ -148,6 +256,7 @@ form[action]{
 
 
 .review-block{
+  font-family: 'MyriadPro-Light';
   .author-face {
     float: left;
     margin: .5vw 1vw 0 0;
@@ -156,4 +265,13 @@ form[action]{
 
 h1,h2,h3{
   .hn;
+}
+
+/**
+ * @url http://css-tricks.com/snippets/css/clear-fix/
+ */
+.group:after {
+  content: "";
+  display: table;
+  clear: both;
 }
