@@ -74,7 +74,8 @@
   color: #555;
   margin: 1em 0 0 0;
 }
-h1,h2,h3 {
+
+h1, h2, h3 {
   .hn;
 }
 
@@ -86,3 +87,128 @@ h1,h2,h3 {
   animation-delay: @ani-del;
   -webkit-animation-delay: @ani-del;
 }
+
+/**
+ * Sidebars
+ */
+.bar-wrapper {
+  .display-flex;
+  & > * {
+    flex-shrink: 1;
+    flex-grow: 1;
+  }
+  & > *:not(.no-bar) {
+    flex-basis: 33%;
+  }
+  .no-bar(@width-center: 800px) {
+    //    width: @width-center !important;
+    flex-basis: @width-center; // !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  & > .block {
+    margin: 6vh 0;
+  }
+  &:first-child {
+    margin: 0;
+  }
+}
+
+.a-prevent-default {
+  .a-clear;
+  & > * {
+    .a-clear-hover;
+  }
+}
+
+.ul-prevent-default {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: block;
+  & > li {
+    padding: 0;
+    margin: 0;
+    display: block;
+  }
+}
+
+.ul-nav(@height: 8hv,@height-min: 20px) {
+  .ul-prevent-default;
+  .display-flex;
+  & > li {
+    .flex(1);
+    height: @height;
+    line-height: @height;
+    min-height: @height-min;
+    text-align: center;
+    display: inline-block;
+  }
+}
+
+.review-block {
+  font-family: 'MyriadPro-Light';
+  .author-face {
+    float: left;
+    margin: .5vw 1vw 0 0;
+  }
+}
+
+h1, h2, h3 {
+  .hn;
+}
+
+
+/**
+ * Slider
+ */
+.slider(@width: 800px, @height: 35vh) {
+  display: block;
+  height: @height;
+  background: url("//subtlepatterns.com/patterns/graphy.png");
+  ul {
+    .ul-prevent-default;
+  }
+  .nav-arrow {
+    width: 10%;
+    position: absolute;
+    height: 35vh;
+    margin-top: -@height;
+    font-size: 100px;
+    line-height: @height;
+    text-align: center;
+    opacity: 0;
+    color: white;
+    .transition(opacity);
+    &:hover {
+      opacity: .3;
+    }
+    &.left {
+      left: 0;
+    }
+    &.right {
+      right: 0;
+    }
+  }
+  .nav-hub {
+    position: absolute;
+    bottom: 10px;
+  }
+  .nav-item {
+    @size: 12px;
+    width: @size;
+    height: @size;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: inline-block;
+    margin: 0 @size / 4;
+    &.current {
+      background: white;
+    }
+    &:hover {
+      border-color: white;
+    }
+  }
+}
+
