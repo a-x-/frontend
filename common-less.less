@@ -50,8 +50,15 @@
 }
 
 .a-clear-hover {
-  color: black;
+  color: inherit;
   text-decoration: inherit;
+}
+
+.a-prevent-default {
+  .a-clear;
+  &:hover{
+    .a-clear-hover;
+  }
 }
 
 .filter (@val) {
