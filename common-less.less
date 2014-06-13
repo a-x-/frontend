@@ -163,23 +163,29 @@ h1, h2, h3 {
 /**
  * Slider
  */
-.slider(@width: 800px, @height: 35vh) {
+.slider(@width: 800px, @height: 20vh) {
   display: block;
   height: @height;
+  min-height: 180px;
   background: url("//subtlepatterns.com/patterns/graphy.png");
   ul {
     .ul-prevent-default;
+    &>li{
+      background-position: center !important;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
   }
   .nav-arrow {
     width: 10%;
     position: absolute;
-    height: 35vh;
+    height: @height;
     margin-top: -@height;
     font-size: 100px;
     line-height: @height;
     text-align: center;
     opacity: 0;
-    color: white;
+    color: gray;
     .transition(opacity);
     &:hover {
       opacity: .3;
@@ -212,3 +218,6 @@ h1, h2, h3 {
   }
 }
 
+
+@font-family-heading: "MyriadPro-Light", "LucidaSans-Unicode", sans-serif;
+@font-family: "LucidaSans-Unicode", sans-serif;
