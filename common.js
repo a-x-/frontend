@@ -107,6 +107,7 @@ var ArrayProxy = function (a) {
     //
     this.each = Array.prototype.forEach.bind(this.v);
     this.obj = akv2okv.bind(this,this.v); // curry once
+//    this.indexOf = function(val){this.v.forEach(function(el,i){if(el==val) return i;return -1;});}.bind(this);
     //
     // ...
 }, ArrayProxyConstruct = function (o) {
@@ -566,3 +567,11 @@ var imageContainer = {
     images: []
 };
 imageContainer.init();
+
+function getShortDate(){
+    var d = new Date();
+    var curr_day = d.getDate();
+    var curr_month = d.getMonth() + 1;
+    var curr_year = d.getFullYear();
+    return "{1}.{2}.{3}".format(curr_day,curr_month,curr_year);
+}
