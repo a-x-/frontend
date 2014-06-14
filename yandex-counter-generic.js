@@ -1,5 +1,5 @@
 /**
- * @file ab.com / ${FILE_NAME}
+ * @file a-x-/common-frontend/yandex-counter-generic /
  * Created: 01.06.14 / 18:57
  */
 <!-- Yandex.Metrika counter -->
