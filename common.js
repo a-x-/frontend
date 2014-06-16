@@ -78,27 +78,39 @@ var oEach, each = Function.prototype.call.bind(oEach = function (context_fn, fn)
  * @constructor
  */
 var ObjectProxy = function (o) {
-    var self = this;
     this.obj = o;
     //
     // Wrapper methods
     this.each = function (fn) {
         (oEach.bind(this.obj))(fn);
-        return self;
-    };
+        return this;
+    }.bind(this);
+    this.copy = function(){return Object.create(this.obj);}.bind(this);
+    this.copyDeep = function clone(){
+        var obj = this.obj;
+        if(obj == null || typeof(obj) != 'object')
+            return obj;
+        var temp = obj.constructor(); // changed
+        this.each(function(el,key){
+            temp[key] = $o(obj[key]).copyDeep();
+        });
+        return temp;
+    }.bind(this);
     // put another methods here ...
 }, ObjectProxyConstruct = function (o) {
     return new ObjectProxy(o);
-}, $o = $$$ = ObjectProxyConstruct;
+}, $o = ObjectProxyConstruct;
 
 
 var ArrayProxy = function (a) {
-    var self = this;
-    this.v = [];
-    if(a instanceof Array) {
+//    this.v = [];
+    if(!a){
+        this.v = [];
+    }
+    else if(a instanceof Array) {
         this.v = a;
     }
-    else {
+    else { // Convert array like object to array
         this.v = [].slice.call(a);
         if(!this.v || !this.v.length) {
             this.v = [a];
@@ -107,12 +119,43 @@ var ArrayProxy = function (a) {
     //
     this.each = Array.prototype.forEach.bind(this.v);
     this.obj = akv2okv.bind(this,this.v); // curry once
-//    this.indexOf = function(val){this.v.forEach(function(el,i){if(el==val) return i;return -1;});}.bind(this);
+    this.fill = function(count,value){return this.v = new Array(1 + count).join(value).split('')}.bind(this);
+    //
+    // get value copy of array
+    this.copy = function(){ return this.v.slice(); }.bind(this);
     //
     // ...
 }, ArrayProxyConstruct = function (o) {
     return new ArrayProxy(o);
 }, $a = ArrayProxyConstruct;
+
+var domProxy = function (d) {
+    this.v = typeof d == 'string' ? $a(document.querySelectorAll(d)).v : d;
+    /**
+     *
+     * @returns Array
+     */
+    this.collection = function () {
+        return this.v instanceof Array ? this.v : [this.v];
+    }.bind(this);
+    /**
+     *
+     * @returns HTMLElement
+     */
+    this.el = function () {
+        return this.v instanceof HTMLElement ? this.v : this.v[0];
+    }.bind(this);
+    this.append = function (child) {
+        this.collection().forEach(function (parent) {
+            $d(child).collection().forEach(function (child) {
+                parent.appendChild(child);
+            });
+        });
+    }.bind(this);
+
+}, DomProxyConstruct = function (d) {
+    return new domProxy(d);
+}, $d = DomProxyConstruct;
 
 var stringProxy = function (s) {
     var self = this;
@@ -575,3 +618,20 @@ function getShortDate(){
     var curr_year = d.getFullYear();
     return "{1}.{2}.{3}".format(curr_day,curr_month,curr_year);
 }
+
+/**
+ *
+ * @example getRadioGroupValue('group-1');
+ */
+function getRadioGroupValue (name){
+    try{
+        $a(document.querySelectorAll('[type="radio"][name="{1}"]'.format(name)))
+            .each(function(el,i){
+                if(el.checked)
+                    throw el.value == 'on' ? i : el.value;
+            });
+    } catch(e){
+        return e;
+    }
+}
+
