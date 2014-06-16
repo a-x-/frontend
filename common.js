@@ -514,6 +514,10 @@ NodeList.prototype.addEventListener = function(){
     });
 };
 
+NodeList.prototype.each = function(fn){
+    $a(this).each(fn);
+};
+
 /**
  * @example ['order', 'call-req'].forEach(setFormInitHandler);
  * @param name
