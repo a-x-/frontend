@@ -4,7 +4,8 @@
  */
 <!-- Yandex.Metrika counter -->
 function yandexCounterGeneric(params) {
-    var counterID = params.id;
+    if(!params)return;
+    var counterID = +params.id;
     (function (d, w, c) {
         (w[c] = w[c] || []).push(function () {
             try {
