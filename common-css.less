@@ -42,7 +42,7 @@
  * Links
  */
 .xtrnl-lnk { }
-a[href^="//"], a[href^="http://"], a[href^="https://"]  { .xtrnl-lnk; }
+a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link)  { .xtrnl-lnk; }
 
 .xtrnl-lnk {
   background: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-black-xtrnl-web2.svg) right no-repeat;
