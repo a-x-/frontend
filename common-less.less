@@ -43,22 +43,15 @@
   text-shadow: @x 0 0 @color, 0 @x 0 @color, -@x 0 0 @color, 0 -@x 0 @color;
 }
 
+
 .a-clear {
   text-decoration: inherit;
   color: inherit;
   border: inherit;
 }
 
-.a-clear-hover {
-  color: inherit;
-  text-decoration: inherit;
-}
-
-.a-prevent-default {
+.a-prevent-default, .a-prevent-default:hover {
   .a-clear;
-  &:hover{
-    .a-clear-hover;
-  }
 }
 
 .filter (@val) {
@@ -118,13 +111,6 @@ h1, h2, h3 {
   }
   &:first-child {
     margin: 0;
-  }
-}
-
-.a-prevent-default {
-  .a-clear;
-  & > * {
-    .a-clear-hover;
   }
 }
 

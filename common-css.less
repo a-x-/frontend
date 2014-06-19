@@ -42,7 +42,7 @@
  * Links
  */
 .xtrnl-lnk { }
-a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link)  { .xtrnl-lnk; }
+a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link) {.xtrnl-lnk;}
 
 .xtrnl-lnk {
   background: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-black-xtrnl-web2.svg) right no-repeat;
@@ -52,6 +52,31 @@ a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="ht
   &:hover {
     background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-blue-xtrnl-web2.svg);
   }
+}
+
+.question-link {
+  @size: 60px;
+  .a-prevent-default;
+  color: cornflowerblue;
+  font-size: @size;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'MyriadPro-light';
+  font-style: normal;
+  display: inline-block;
+  width: @size;
+  height: @size;
+  border: 1px solid;
+  line-height: @size;
+  border-radius: 50%;
+  .transition(all, 0.2s);
+  position: absolute;
+  left: 40vw;
+  margin-top: -10px;
+  margin-left: -1px;
+}
+.question-link:hover {
+  background: cornflowerblue;
+  color: white !important;
 }
 
 //
