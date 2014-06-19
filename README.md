@@ -1,8 +1,8 @@
-common-frontend
-=======================
+Interproject front-end resources
+================================
 > Exuse my beginner's English...
 
-# My common front-end code
+# My interproject front-end code
 
 There are 
 * common-css,
