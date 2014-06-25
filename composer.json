@@ -1,0 +1,13 @@
+{
+    "name": "a-x-/frontend",
+    "description": "Interproject front-end resources",
+    "license": "GPL3",
+    "authors": [
+        {
+            "name": "Invntrm",
+            "email": "Invntrm@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
