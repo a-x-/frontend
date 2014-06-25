@@ -2,6 +2,18 @@
  * @file DS-PROMO /
  * Created: 14.05.14 / 19:29
  */
+
+.flex(@val:auto) {
+  -webkit-flex: @val;
+  flex: @val;
+}
+
+.display-flex(@val:auto) {
+  display: box;
+  display: -webkit-flex;
+  display: flex;
+}
+
 .animation(@val) {
   animation: @val;
   -webkit-animation: @val;
@@ -44,54 +56,32 @@
 }
 
 
-.a-clear {
+.a-clear() {
   text-decoration: inherit;
   color: inherit;
   border: inherit;
 }
 
-.a-prevent-default, .a-prevent-default:hover {
+.a-prevent-default{
   .a-clear;
+  &:hover{
+    .a-clear;
+  }
 }
 
 .filter (@val) {
   filter: @val;
   -webkit-filter: @val;
 }
-
-.flex(@val:auto) {
-  -webkit-flex: @val;
-  flex: @val;
-}
-
-.display-flex() {
-  display: box;
-  display: -webkit-flex;
-  display: flex;
-}
-
 .hn {
   color: #555;
   margin: 1em 0 0 0;
 }
 
-h1, h2, h3 {
-  .hn;
-}
-
-.animated {
-  @ani-dur: 8s;
-  animation-duration: @ani-dur;
-  -webkit-animation-duration: @ani-dur;
-  @ani-del: 0s;
-  animation-delay: @ani-del;
-  -webkit-animation-delay: @ani-del;
-}
-
 /**
  * Sidebars
  */
-.bar-wrapper {
+.bar-wrapper() {
   .display-flex;
   & > * {
     flex-shrink: 1;
@@ -114,7 +104,7 @@ h1, h2, h3 {
   }
 }
 
-.ul-prevent-default {
+.ul-prevent-default() {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -138,18 +128,6 @@ h1, h2, h3 {
     text-align: center;
     display: inline-block;
   }
-}
-
-.review-block {
-  font-family: 'MyriadPro-Light';
-  .author-face {
-    float: left;
-    margin: .5vw 1vw 0 0;
-  }
-}
-
-h1, h2, h3 {
-  .hn;
 }
 
 

@@ -28,6 +28,19 @@
   background: rgba(255, 0, 0, .3);
 }
 
+h1, h2, h3 {
+  .hn;
+}
+
+.animated {
+  @ani-dur: 8s;
+  animation-duration: @ani-dur;
+  -webkit-animation-duration: @ani-dur;
+  @ani-del: 0s;
+  animation-delay: @ani-del;
+  -webkit-animation-delay: @ani-del;
+}
+
 /**
  * Block element (hide overflow, hide scrolls)
  * For example, using html.fixed for modals
@@ -45,12 +58,12 @@
 a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link) {.xtrnl-lnk;}
 
 .xtrnl-lnk {
-  background: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-black-xtrnl-web2.svg) right no-repeat;
+  background: url(/vendor/a-x-/frontend/resources/neo-black-xtrnl-web2.svg) right no-repeat;
   background-size: contain;
   padding-right: 1.5em;
   padding-left: .8em;
   &:hover {
-    background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-blue-xtrnl-web2.svg);
+    background-image: url(/vendor/a-x-/frontend/resources/neo-blue-xtrnl-web2.svg);
   }
 }
 
@@ -83,17 +96,17 @@ a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="ht
 // twitter like behaviour
 // FOOTER LINKS BEHAVIOR & STYLE
 footer a[href^="//"], footer a[href^="http://"], footer a[href^="https://"] {
-  background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-gray-xtrnl-web2.svg);
+  background-image: url(/vendor/a-x-/frontend/resources/neo-gray-xtrnl-web2.svg);
   color: gray;
 }
 
 footer:hover a[href^="//"], footer:hover a[href^="http://"], footer:hover a[href^="https://"] {
-  background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-black-xtrnl-web2.svg);
+  background-image: url(/vendor/a-x-/frontend/resources/neo-black-xtrnl-web2.svg);
   color: black;
 }
 
 footer a[href^="//"]:hover, a[href^="http://"]:hover, a[href^="https://"]:hover {
-  background-image: url(/vendor/a-x-/invntrm-common-frontend/resources/neo-blue-xtrnl-web2.svg);
+  background-image: url(/vendor/a-x-/frontend/resources/neo-blue-xtrnl-web2.svg);
   color: blue;
 }
 
@@ -181,7 +194,7 @@ form[action] {
 .animation.status {
   width: 20px;
   height: 20px;
-  background-image: url('/vendor/a-x-/invntrm-common-frontend/resources/loader.svg');
+  background-image: url('/vendor/a-x-/frontend/resources/loader.svg');
   background-repeat: no-repeat;
   background-size: 20px 20px;
   position: absolute;
@@ -231,3 +244,12 @@ code, kbd, pre, samp {
   white-space: nowrap;
   border: 1px solid silver;
 }
+
+.review-block {
+  font-family: 'MyriadPro-Light';
+  .author-face {
+    float: left;
+    margin: .5vw 1vw 0 0;
+  }
+}
+
