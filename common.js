@@ -7,9 +7,15 @@
 /**
  * @example ['k','v'] --> {"k":"v"}
  */
-function akv2okv (a){var o = {}; o[a[0]] = a[1]; return o; }
+function akv2okv(a) {
+    var o = {};
+    o[a[0]] = a[1];
+    return o;
+}
 
-RegExp.escape= function(s) {return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'); };
+RegExp.escape = function (s) {
+    return s.replace(/[\-\/\^\$\*\+\?\.\(\)\|\[\]\{\}\\]/g, '\\$&');
+};
 
 function curry(func) {
     var curryArgs = [];
@@ -53,12 +59,12 @@ function forEach (arr, fn){
  */
 var oEach, each = Function.prototype.call.bind(oEach = function (context_fn, fn) {
     var context;
-    if (arguments.length == 1) {
-        fn = context_fn
-    } else if (arguments.length == 2) {
+    if (arguments.length === 1) {
+        fn = context_fn;
+    } else if (arguments.length === 2) {
         context = context_fn;
     } else {
-        throw 'Too much arguments;'
+        throw 'Too much arguments;';
     }
     // 'this' is given object
     for (var index in this) {
@@ -88,8 +94,9 @@ var ObjectProxy = function (o) {
     this.copy = function(){return Object.create(this.obj);}.bind(this);
     this.copyDeep = function clone(){
         var obj = this.obj;
-        if(obj == null || typeof(obj) != 'object')
+        if(obj === null || typeof(obj) !== 'object') {
             return obj;
+        }
         var temp = obj.constructor(); // changed
         this.each(function(el,key){
             temp[key] = $o(obj[key]).copyDeep();
@@ -103,28 +110,29 @@ var ObjectProxy = function (o) {
 
 
 var ArrayProxy = function (a) {
-    if(!a){
+    if (a) {
+        if (a instanceof Array) {
+            this.v = a;
+        }
+        else { // Convert array like object to array
+            this.v = [].slice.call(a);
+            if (!this.v || !this.v.length) {
+                this.v = [a];
+            }
+        }
+    } else {
         this.v = [];
     }
-    else if(a instanceof Array) {
-        this.v = a;
-    }
-    else { // Convert array like object to array
-        this.v = [].slice.call(a);
-        if(!this.v || !this.v.length) {
-            this.v = [a];
-        }
-    }
-    //
     this.each = Array.prototype.forEach.bind(this.v);
     this.obj = akv2okv.bind(this,this.v); // curry once
-    this.fill = function(count,value){return this.v = new Array(1 + count).join(value).split('')}.bind(this);
+    this.fill = function(count,value){return this.v = new Array(1 + count).join(value).split('');}.bind(this);
+    this.del = function(index){this.v.splice(index, 1); return this;}.bind(this);
     this.uniq = function(arr) {
         var hash = {}, outArr = [];
         arr.forEach(function(el) {
             if(!hash[el]) {hash[el] = true; outArr.push(el)}
         })
-        return outArr;
+	return outArr;
     };
     //
     // get value copy of array
