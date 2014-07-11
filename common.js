@@ -103,7 +103,6 @@ var ObjectProxy = function (o) {
 
 
 var ArrayProxy = function (a) {
-//    this.v = [];
     if(!a){
         this.v = [];
     }
@@ -120,6 +119,13 @@ var ArrayProxy = function (a) {
     this.each = Array.prototype.forEach.bind(this.v);
     this.obj = akv2okv.bind(this,this.v); // curry once
     this.fill = function(count,value){return this.v = new Array(1 + count).join(value).split('')}.bind(this);
+    this.uniq = function(arr) {
+        var hash = {}, outArr = [];
+        arr.forEach(function(el) {
+            if(!hash[el]) {hash[el] = true; outArr.push(el)}
+        })
+        return outArr;
+    };
     //
     // get value copy of array
     this.copy = function(){ return this.v.slice(); }.bind(this);
