@@ -3,15 +3,54 @@
  * Created: 14.05.14 / 19:29
  */
 
-.flex(@val:auto) {
+//
+// flex
+// Применяется к: дочернему элементу / flex-элементу.
+// Это сокращение для flex-grow, flex-shrink и flex-basis.
+// Второй и третий параметры (flex-shrink, flex-basis) необязательны.
+// Значение по умолчанию — 0 1 auto.
+// flex: none | [ <'flex-grow'> <'flex-shrink'>? || <'flex-basis'> ]
+.flex(@val:0 1 auto) {
   -webkit-flex: @val;
   flex: @val;
+}
+
+//
+// justify-content: flex-start | flex-end | center | space-between | space-around
+.justify-content(@val:space-between) {
+  -webkit-justify-content: @val;
+  justify-content: @val;
+}
+
+//
+// Применяется к: родительскому элементу flex-контейнера.
+// Это сокращение для свойств flex-direction и flex-wrap, вместе определяющих главную и поперечную оси.
+// По умолчанию принимает значение row nowrap.
+// flex-flow: <'flex-direction'> || <'flex-wrap'>
+.flex-flow (@val: row nowrap) {
+  flex-flow: @val;
+  -webkit-flex-flow: @val;
+}
+.flex-flow (@dir: row, @wrap: nowrap) {
+  flex-flow: @dir @wrap;
+  -webkit-flex-flow: @dir @wrap;
 }
 
 .display-flex(@val:auto) {
   display: box;
   display: -webkit-flex;
   display: flex;
+}
+
+
+// Workaround Safari bug
+// [CSS Calc Viewport Units Workaround?](http://stackoverflow.com/questions/21224411/css-calc-viewport-units-workaround)
+.calc-width-subtraction (@v1, @v2) {
+  width: @v1;
+  margin-right: -@v2;
+  padding-right: @v2;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .animation(@val) {
