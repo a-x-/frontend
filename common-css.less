@@ -159,31 +159,24 @@ menu ul, nav ul {
   }
 }
 
-form[action] {
+form[action]:not(.form-prevent-common) {
   padding: 5vh 5vw;
   width: 100%;
   &.form-sm {
     padding: 2vh 0;
   }
-  label {
+  label:not(.label-prevent-default) {
     .display-flex;
+    .justify-content(flex-start);
+    .flex-flow();
     width: 100%;
     margin-bottom: 1ex;
-    justify-content: flex-start;
-    flex-direction: row;
     font-weight: normal;
-    input[type="text"],
-    input[type="date"],
-    input[type="datetime"],
-    input[type="file"],
-    input[type="password"],
-    input[type="email"],
-    input[type="email"] {
-      flex-grow: 2;
+    input, select {
+      .flex(2 0 auto);
     }
     input[type="checkbox"], input[type="radio"] {
-      flex-basis: 30px;
-      flex-grow: 0;
+      .flex(0 0 30px);
     }
     > span {
       text-align: right;

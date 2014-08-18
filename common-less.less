@@ -28,12 +28,12 @@
 // По умолчанию принимает значение row nowrap.
 // flex-flow: <'flex-direction'> || <'flex-wrap'>
 .flex-flow (@val: row nowrap) {
-  flex-flow: @val;
   -webkit-flex-flow: @val;
+  flex-flow: @val;
 }
 .flex-flow (@dir: row, @wrap: nowrap) {
-  flex-flow: @dir @wrap;
   -webkit-flex-flow: @dir @wrap;
+  flex-flow: @dir @wrap;
 }
 
 .display-flex(@val:auto) {

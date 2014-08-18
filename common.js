@@ -131,12 +131,17 @@ var ArrayProxy = function (a) {
         var hash = {}, outArr = [];
         arr.forEach(function(el) {
             if(!hash[el]) {hash[el] = true; outArr.push(el)}
-        })
-	return outArr;
+        });
+    	return outArr;
     };
+    this.push = function (el) {
+        var newArray = $o(this.v).copyDeep();
+        newArray.push(el);
+        return newArray;
+    }.bind(this);
     //
     // get value copy of array
-    this.copy = function(){ return this.v.slice(); }.bind(this);
+    this.copy = function(){ return [].concat(this.v); }.bind(this);
     //
     // ...
 }, ArrayProxyConstruct = function (o) {
@@ -166,6 +171,8 @@ var domProxy = function (d) {
             });
         });
     }.bind(this);
+    this.show = function(){var el = this.el(); el.classList.remove('stash');}.bind(this);
+    this.stash = function(){var el = this.el(); el.classList.add('stash');}.bind(this);
 
 }, DomProxyConstruct = function (d) {
     return new domProxy(d);
@@ -653,3 +660,6 @@ function getRadioGroupValue (name){
     }
 }
 
+function getMeta(name) {
+    return document.querySelector('meta[name="{1}"]'.format(name)).content;
+}
