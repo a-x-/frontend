@@ -173,6 +173,11 @@ var domProxy = function (d) {
     }.bind(this);
     this.show = function(){var el = this.el(); el.classList.remove('stash');}.bind(this);
     this.stash = function(){var el = this.el(); el.classList.add('stash');}.bind(this);
+    this.on = function(events,callback,bubbling) {
+        events.split(/\s+/).forEach(function (event) {
+            this.el().addEventListener(event,callback,bubbling);
+        }.bind(this));
+    }.bind(this);
 
 }, DomProxyConstruct = function (d) {
     return new domProxy(d);
