@@ -53,14 +53,50 @@
   box-sizing: border-box;
 }
 
+/**
+ * @deprecated
+ */
 .animation(@val) {
-  animation: @val;
   -webkit-animation: @val;
+  animation: @val;
 }
 
+/**
+ * @deprecated
+ */
 .animation2(@val1,@val2) {
-  animation: @val1 @val2;
   -webkit-animation: @val1, @val2;
+  animation: @val1 @val2;
+}
+
+/**
+ *
+ * @param animation-name            --  Specifies the name of the @keyframes at-rule describing the animation's keyframes.
+ * @param animation-duration        --  Configures the length of time that an animation should take to complete one cycle.
+ * @param animation-timing-function     linear|ease|ease-in|ease-out|cubic-bezier(n,n,n,n)
+ *                                  --  Configures the timing of the animation; that is, how the animation transitions through keyframes, by establishing acceleration curves.
+ * @param animation-delay           --  Configures the delay between the time the element is loaded and the beginning of the animation sequence.
+ * @param animation-iteration-count --  Configures the number of times the animation should repeat; you can specify infinite to repeat the animation indefinitely.
+ * @param animation-direction           normal|reverse|alternate|alternate-reverse
+ *                                  --  Configures whether or not the animation should alternate direction on each run through the sequence or reset to the start point and repeat itself.
+ *                                      Example http://www.w3schools.com/cssref/playit.asp?filename=playcss_animation-direction&preval=alternate
+ * @param animation-play-state          paused|running
+ *                                  --  Lets you pause and resume the animation sequence.
+ *                                      Example: http://www.w3schools.com/cssref/playit.asp?filename=playcss_animation-play-state&preval=paused
+ *
+ * @param animation-fill-mode -- Configures what values are applied by the animation before and after it is executing.
+ */
+.animation3(
+  @keyframes-name,
+  @duration: 1s,
+  @delay: 0,
+  @iteration-count: 1,
+  @timing-function: ease-in-out,
+  @direction: normal,
+  @play-state: running
+) {
+  -webkit-animation: @keyframes-name @duration @timing-function @delay @iteration-count @direction @play-state;
+  animation: @keyframes-name @duration @timing-function @delay @iteration-count @direction @play-state;
 }
 
 /**
