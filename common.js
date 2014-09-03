@@ -3,209 +3,141 @@
  * Created: 10.05.14 / 23:28
  */
 
+/**
+ * Make the object, call object.init() and return its.
+ * @param object
+ * @depends each
+ * @returns {*}
+ */
+function makeObjInit(object) {
+    var Generator = function () { };
+    Generator.prototype = _.clone(object);
+    (object.init || function(){}).call(this);
+    return new Generator();
+}
 
 /**
- * @example ['k','v'] --> {"k":"v"}
+ * @param classObject
+ * @return {*}
  */
-function akv2okv(a) {
-    var o = {};
-    o[a[0]] = a[1];
-    return o;
+function makeClass(classObject) {
+    if(!classObject.init) {classObject.init = function(){};}
+    //
+    var fn = classObject.init;
+    each(classObject, function (el, i) {
+        fn.prototype[i] = el;
+    });
+    return fn;
 }
+
+
+//
+// Ugly hell extending
+//
+
+HTMLElement.prototype.trigger || (HTMLElement.prototype.trigger = function(event){
+    this.dispatchEvent(new CustomEvent(event));
+    return this;
+});
+NodeList.prototype.addEventListener = function(){
+    var args = $a(arguments).v;
+    if(!arguments.length || !this.length) return;
+    $a(this).each(function(el,i,a){
+        console.log(el, args);
+        HTMLElement.prototype.addEventListener.apply(el,args);
+    });
+};
+
+NodeList.prototype.each = function(fn){
+    $a(this).each(fn);
+};
+
 
 RegExp.escape = function (s) {
     return s.replace(/[\-\/\^\$\*\+\?\.\(\)\|\[\]\{\}\\]/g, '\\$&');
 };
 
-function curry(func) {
-    var curryArgs = [];
-    if (typeof func !== 'function') {
-        throw new Error('The first arguments must be function!');
-    }
-    for (var i = 1; i < arguments.length; i++) {
-        curryArgs[i - 1] = arguments[i];
-    }
-    return function () {
-        // convert arguments to array
-        var argsArr = Array.prototype.slice.call(arguments, 0);
-        curryArgs = curryArgs.concat(argsArr);
-        return func.apply(this, curryArgs);
-    }
-}
-
-
-/**
- * For each with return value
- * @param arr
- * @param fn
- * @returns {*}
- */
-function forEach (arr, fn){
-    var i = 0, l = arr.length;
-    var result;
-    for(i=0;i<l;++i){
-        result = fn(arr[i],i,arr);
-        if(result !== undefined) {
-            return result;
-        }
-    }
-    return null;
-}
-
-/**
- * forEach analogy for Objects
- * @param fn
- * @example each({1:1,2:2},function(v,i,a){console.log(v,i,a,'!!!');})
- */
-var oEach, each = Function.prototype.call.bind(oEach = function (context_fn, fn) {
-    var context;
-    if (arguments.length === 1) {
-        fn = context_fn;
-    } else if (arguments.length === 2) {
-        context = context_fn;
-    } else {
-        throw 'Too much arguments;';
-    }
-    // 'this' is given object
-    for (var index in this) {
-        if (this.hasOwnProperty(index)) {
-            var value = this[index],
-                array = this;
-            fn.call(context || this, value, index, array);
-        }
-    }
-    return this;
-});
-
-/**
- * $o(object) wrapper
- * @example $o({a:1,b:2}).each(function(el,prop,obj){console.log(el,prop);}); // --> a 1\n b 2
- * @param o object - wrapped object
- * @constructor
- */
-var ObjectProxy = function (o) {
-    this.obj = o;
-    //
-    // Wrapper methods
-    this.each = function (fn) {
-        (oEach.bind(this.obj))(fn);
-        return this;
-    }.bind(this);
-    this.copy = function(){return Object.create(this.obj);}.bind(this);
-    this.copyDeep = function clone(){
-        var obj = this.obj;
-        if(obj === null || typeof(obj) !== 'object') {
-            return obj;
-        }
-        var temp = obj.constructor(); // changed
-        this.each(function(el,key){
-            temp[key] = $o(obj[key]).copyDeep();
-        });
-        return temp;
-    }.bind(this);
-    // put another methods here ...
-}, ObjectProxyConstruct = function (o) {
-    return new ObjectProxy(o);
-}, $o = ObjectProxyConstruct;
-
-
-var ArrayProxy = function (a) {
-    if (a) {
-        if (a instanceof Array) {
-            this.v = a;
-        }
-        else { // Convert array like object to array
-            this.v = [].slice.call(a);
-            if (!this.v || !this.v.length) {
-                this.v = [a];
-            }
-        }
-    } else {
-        this.v = [];
-    }
-    this.each = Array.prototype.forEach.bind(this.v);
-    this.obj = akv2okv.bind(this,this.v); // curry once
-    this.fill = function(count,value){return this.v = new Array(1 + count).join(value).split('');}.bind(this);
-    this.del = function(index){this.v.splice(index, 1); return this;}.bind(this);
-    this.uniq = function(arr) {
-        var hash = {}, outArr = [];
-        arr.forEach(function(el) {
-            if(!hash[el]) {hash[el] = true; outArr.push(el)}
-        });
-    	return outArr;
+var proxies = (function () {
+    var $ProxyStatics = function (self) {
+        self.chaining = self.v !== undefined;
+        self.toValue = function () { this.chaining = false; return this; }.bind(self);
+        self.valueOf = function () { return this.v; }.bind(self);
+        //
+        this.wrapFn = function (fn) {
+            return function () {
+                var args = _.clone(arguments), out;
+                if (this.v) { args.unshift(this.v); } else { this.v = arguments[0]; }
+                out = fn.apply(args);
+                if (out !== undefined && this.chaining) { this.v = out; } // иначе при включенном chaining значение потеряется
+                return this.chaining ? this : (this.v || arguments[0]);
+            }.bind(this);
+        }.bind(self);
     };
-    this.push = function (el) {
-        var newArray = $o(this.v).copyDeep();
-        newArray.push(el);
-        return newArray;
-    }.bind(this);
-    //
-    // get value copy of array
-    this.copy = function(){ return [].concat(this.v); }.bind(this);
-    //
-    // ...
-}, ArrayProxyConstruct = function (o) {
-    return new ArrayProxy(o);
-}, $a = ArrayProxyConstruct;
+    return {
+        /**
+         * Dom element or dom elements collection wrapper
+         * @version 2.0 no backward compatibility
+         * $d.append(parentEl,childEl); -> parentEl HTMLElement
+         * $d(parentEl).append(childEl); -> DomProxy{parentEl}
+         */
+        d: (function () {
+            return function (d) {
+                return new function domProxy(d) {
+                    this.v = d && (typeof d === 'string' ? _.toArray(document.querySelectorAll(d)) : [d]);
+                    this.el = function () { return this.v[0]; }.bind(this);
+                    var statics = new $ProxyStatics(this);
+                    //
+                    this.append = statics.wrapFn(function (v, child) {
+                        v.forEach(function (parent) {
+                            $d(child).v.forEach(function (child) { parent.appendChild(child); });
+                        });
+                    }.bind(this));
+                    this.show = statics.wrapFn(function (v) {
+                        v.forEach(function (el) { el.classList.remove('stash'); });
+                    }.bind(this));
+                    this.stash = statics.wrapFn(function (v) {
+                        v.forEach(function (el) { el.classList.stash('stash'); });
+                    }.bind(this));
+                    this.on = statics.wrapFn(function (v, events, callback, bubbling) {
+                        events.split(/\s+/).forEach(function (event) {
+                            v.forEach(function (el) { el.addEventListener(event, callback, bubbling); });
+                        }.bind(this));
+                    }.bind(this));
+                };
+            };
+        }()),
 
-var domProxy = function (d) {
-    this.v = typeof d == 'string' ? $a(document.querySelectorAll(d)).v : d;
-    /**
-     *
-     * @returns Array
-     */
-    this.collection = function () {
-        return this.v instanceof Array ? this.v : [this.v];
-    }.bind(this);
-    /**
-     *
-     * @returns HTMLElement
-     */
-    this.el = function () {
-        return this.v instanceof HTMLElement ? this.v : this.v[0];
-    }.bind(this);
-    this.append = function (child) {
-        this.collection().forEach(function (parent) {
-            $d(child).collection().forEach(function (child) {
-                parent.appendChild(child);
-            });
-        });
-    }.bind(this);
-    this.show = function(){var el = this.el(); el.classList.remove('stash');}.bind(this);
-    this.stash = function(){var el = this.el(); el.classList.add('stash');}.bind(this);
-    this.on = function(events,callback,bubbling) {
-        events.split(/\s+/).forEach(function (event) {
-            this.el().addEventListener(event,callback,bubbling);
-        }.bind(this));
-    }.bind(this);
-
-}, DomProxyConstruct = function (d) {
-    return new domProxy(d);
-}, $d = DomProxyConstruct;
-
-var stringProxy = function (s) {
-    var self = this;
-    this.v = s;
-    /**
-     * @param pattern       string|regExp|object
-     * @param replacement   string
-     * @example $s ('123').replace( {'1': -1, '2':-2, '3':-3} )
-     */
-    this.replace = function (/*string|regExp|object*/pattern, /*=*/replacement) {
-        var strNew = self.v;
-        if (pattern instanceof Object) {
-            $o(pattern).each(function (replacement, pattern) {
-                strNew = strNew.replace(pattern, replacement);
-            });
-        }
-        return strNew;
+        /**
+         * @version 2.0 no backward compatibility
+         */
+        s: (function () {
+            return function (s) {
+                var $S = function (s) {
+                    this.v = s;
+                    var statics = new $ProxyStatics(this);
+                    //
+                    /**
+                     * Map replace
+                     * @param pattern       string|regExp|object
+                     * @param replacement   string
+                     * @example $s ('123').replace( {'1': -1, '2':-2, '3':-3} )
+                     */
+                    this.replaceMap = statics.wrapFn(function (v, /*string|regExp|object*/pattern, /*=*/replacement) {
+                        var strNew;
+                        if (_.isPlainObject(pattern)) {
+                            _.forEach(pattern, function (replacement, pattern) { strNew = v.replace(pattern, replacement); });
+                        }
+                        return strNew;
+                    }.bind(this));
+                };
+                $S.prototype = String.prototype; // extend String type
+                return new $S(s);
+            };
+        }())
     };
-    this.match = String.prototype.match.bind(this.v);
-    this.arg = String.prototype.format.bind(this.v);
-}, StringProxyConstruct = function (s) {
-    return new stringProxy(s);
-}, $s = StringProxyConstruct;
-
+}()),
+    $s = proxies.s,
+    $d = proxies.d;
 
 /**
  * Make template processors if haystack described by box or variable enclosure
@@ -238,34 +170,107 @@ function delayedSetter(haystack, /**String=*/key) {
     return processorCallback;
 }
 
-try{
-if ($ && $.pnotify) {
-    /**
-     * Show notification
-     * @param text string
-     * @param title string
-     * @param delay integer
-     * @param type string
-     */
-    function openNoty(title, text, /*string=*/type, /*integer=*/delay) {
-        if (type == 'fail') {
-            type = 'error';
-        }
-        $.pnotify({
-            title: title,
-            text: text,
-            nonblock: true,
-            nonblock_opacity: 0.2,
-            type: type || 'success',
-            delay: delay || $.pnotify.DELAY
-        });
-    }
-    $.pnotify.DELAY = 4000;
+
+/**
+ * @reference http://blog.invntrm.ru/pravoslavnoie-dobavlieniie-html-eliemientov-js/
+ * @param o
+ * @returns {string}
+ */
+function cssStringify(o) {
+    var out = '';
+    $o(o).each(function(v, i, a) {// $$$ - object proxy
+        out += i + ':' + v + ';';
+    });
+    return out;
 }
+
+/**
+ * Make form ajax-able
+ * @version 2.0
+ * @example ['order', 'call-req'].forEach(setFormInitHandler);
+ * @param formSelector
+ * @param additionData
+ * @param callbacks
+ */
+function setFormInitHandler (formSelector, additionData, callbacks) {
+    // v.1 deleted
+    // todo write setFormInitHandler v.2
+}
+
+/**
+ * Pre-load images
+ * @type {{isLoadingStarted: boolean, add: add, load: load, init: init, images: Array}}
+ * HTML5 Link Prefetch
+ * <link rel="prefetch" href="...jpg" />
+ */
+
+function getShortDate(){
+    var d = new Date();
+    var curr_day = d.getDate();
+    var curr_month = d.getMonth() + 1;
+    var curr_year = d.getFullYear();
+    return "{1}.{2}.{3}".format(curr_day,curr_month,curr_year);
+}
+
+/**
+ *
+ * @example getRadioGroupValue('group-1');
+ */
+function getRadioGroupValue (name){
+    try{
+        $a(document.querySelectorAll('[type="radio"][name="{1}"]'.format(name)))
+            .each(function(el,i){
+                if(el.checked)
+                    throw el.value == 'on' ? i : el.value;
+            });
+    } catch(e){
+        return e;
+    }
+    return undefined;
+}
+
+function getMeta(name) {
+    return document.querySelector('meta[name="{1}"]'.format(name)).content;
+}
+
+try{
+    if ($ && $.pnotify) {
+        /**
+         * Show notification
+         * @param text string
+         * @param title string
+         * @param delay integer
+         * @param type string
+         */
+        function openNoty(title, text, /*string=*/type, /*integer=*/delay) {
+            if (type == 'fail') {
+                type = 'error';
+            }
+            $.pnotify({
+                title: title,
+                text: text,
+                nonblock: true,
+                nonblock_opacity: 0.2,
+                type: type || 'success',
+                delay: delay || $.pnotify.DELAY
+            });
+        }
+        $.pnotify.DELAY = 4000;
+    }
 }catch (e){}
 
 
+var JS_COMMENTS_RX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 
+//
+// Deprecated functions
+//
+
+
+/**
+ * @deprecated
+ * @type {*}
+ */
 var Ajax = makeObjInit({
     init: function () {
         /**
@@ -316,7 +321,7 @@ var Ajax = makeObjInit({
                             statusEl.remove();
                         },
                         parseInt(statusEl.css('transition-duration'))
-                            * $s(statusEl.css('transition-duration')).match(/[a-z]+/i)[0].replace({ms: 1, s: 1000})
+                            * $s(statusEl.css('transition-duration')).match(/[a-z]+/i)[0].replaceMap({ms: 1, s: 1000})
                     );
                 }
             }
@@ -373,7 +378,203 @@ var Ajax = makeObjInit({
     }
 });
 
+/**
+ * @deprecated as not required in XXI
+ * reference http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
+ * @param func
+ * @returns {Array|{index: number, input: string}}
+ */
+function getParamNames(func) {
+    var fnStr = func.toString().replace(JS_COMMENTS_RX, '');
+    var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
+    if (result === null) {
+        result = [];
+    }
+    return result
+}
 
+
+/**
+ * @deprecated by lodash
+ */
+if (!String.prototype.format) {
+    String.prototype.format = function() {
+        var args = $a(arguments).v;
+        args.unshift(null);
+        return this.replace(/{(\d+)}/g, function(match, number) {
+            return typeof args[number] != 'undefined' ? args[number] : '';
+        });
+    };
+}
+/**
+ * @deprecated by lodash
+ * @example ['k','v'] --> {"k":"v"}
+ */
+function akv2okv(a) {
+    var o = {};
+    o[a[0]] = a[1];
+    return o;
+}
+
+/**
+ * @deprecated by lodash
+ * @param func
+ * @return {Function}
+ */
+function curry(func) {
+    var curryArgs = [];
+    if (typeof func !== 'function') {
+        throw new Error('The first arguments must be function!');
+    }
+    for (var i = 1; i < arguments.length; i++) {
+        curryArgs[i - 1] = arguments[i];
+    }
+    return function () {
+        // convert arguments to array
+        var argsArr = Array.prototype.slice.call(arguments, 0);
+        curryArgs = curryArgs.concat(argsArr);
+        return func.apply(this, curryArgs);
+    }
+}
+
+
+/**
+ * @deprecated by lodash
+ * For each with return value
+ * @param arr
+ * @param fn
+ * @returns {*}
+ */
+function forEach (arr, fn){
+    var i = 0, l = arr.length;
+    var result;
+    for(i=0;i<l;++i){
+        result = fn(arr[i],i,arr);
+        if(result !== undefined) {
+            return result;
+        }
+    }
+    return null;
+}
+
+/**
+ * @deprecated by lodash
+ * forEach analogy for Objects
+ * @param fn
+ * @example each({1:1,2:2},function(v,i,a){console.log(v,i,a,'!!!');})
+ */
+var oEach, each = Function.prototype.call.bind(oEach = function (context_fn, fn) {
+    var context;
+    if (arguments.length === 1) {
+        fn = context_fn;
+    } else if (arguments.length === 2) {
+        context = context_fn;
+    } else {
+        throw 'Too much arguments;';
+    }
+    // 'this' is given object
+    for (var index in this) {
+        if (this.hasOwnProperty(index)) {
+            var value = this[index],
+                array = this;
+            fn.call(context || this, value, index, array);
+        }
+    }
+    return this;
+});
+
+/**
+ * @deprecated by lodash
+ * $o(object) wrapper
+ * @example $o({a:1,b:2}).each(function(el,prop,obj){console.log(el,prop);}); // --> a 1\n b 2
+ * @param o object - wrapped object
+ * @constructor
+ */
+var ObjectProxy = function (o) {
+    this.obj = o;
+    //
+    // Wrapper methods
+    this.each = function (fn) {
+        (oEach.bind(this.obj))(fn);
+        return this;
+    }.bind(this);
+    this.copy = function(){return Object.create(this.obj);}.bind(this);
+    this.copyDeep = function clone(){
+        var obj = this.obj;
+        if(obj === null || typeof(obj) !== 'object') {
+            return obj;
+        }
+        var temp = obj.constructor(); // changed
+        this.each(function(el,key){
+            temp[key] = $o(obj[key]).copyDeep();
+        });
+        return temp;
+    }.bind(this);
+    // put another methods here ...
+}, ObjectProxyConstruct = function (o) {
+    return new ObjectProxy(o);
+}, $o = ObjectProxyConstruct;
+
+/**
+ * @deprecated by lodash
+ * @param a
+ * @constructor
+ */
+var ArrayProxy = function (a) {
+    if (a) {
+        if (a instanceof Array) {
+            this.v = a;
+        }
+        else { // Convert array like object to array
+            this.v = [].slice.call(a);
+            if (!this.v || !this.v.length) {
+                this.v = [a];
+            }
+        }
+    } else {
+        this.v = [];
+    }
+    this.each = Array.prototype.forEach.bind(this.v);
+    this.obj = akv2okv.bind(this,this.v); // curry once
+    this.fill = function(count,value){return this.v = new Array(1 + count).join(value).split('');}.bind(this);
+    this.del = function(index){this.v.splice(index, 1); return this;}.bind(this);
+    this.uniq = function(arr) {
+        var hash = {}, outArr = [];
+        arr.forEach(function(el) {
+            if(!hash[el]) {hash[el] = true; outArr.push(el)}
+        });
+        return outArr;
+    };
+    this.push = function (el) {
+        var newArray = $o(this.v).copyDeep();
+        newArray.push(el);
+        return newArray;
+    }.bind(this);
+    //
+    // get value copy of array
+    this.copy = function(){ return [].concat(this.v); }.bind(this);
+    //
+    // ...
+}, ArrayProxyConstruct = function (o) {
+    return new ArrayProxy(o);
+}, $a = ArrayProxyConstruct;
+
+/**
+ * @deprecated as no required in XXI
+ * new Function(['a','b'],'return ' + ((function(){return 42+a+b;}).toString()) + '();' )(1,2) // --> 45
+ * @example makeFnWithArguments([a,b],function(){return 42+a+b;})(1,2); // --> 45
+ * @param argsNames
+ * @param fn
+ * @returns {Function}
+ */
+function makeFnWithArguments(argsNames, fn) {
+    return new Function(argsNames, 'return (' + fn.toString() + ')();');
+}
+
+/**
+ * @deprecated by fancybox
+ * @type {{isModal: boolean, _$shut: undefined, blurSelector: string, onClose: onClose, activate: activate, deactivate: deactivate}}
+ */
 var Modal = {
     isModal: false,
     _$shut: undefined,
@@ -441,230 +642,3 @@ var Modal = {
     }
 };
 
-
-/**
- * Make the object, call object.init() and return its.
- * @param object
- * @param object_args
- * @depends each
- * @returns {}
- */
-function makeObjInit(object_args, object) {
-    var argsNames = {};
-    if (arguments.length >= 2) {
-        argsNames = object_args;
-    } else {
-        object = object_args;
-    }
-    return new function () {
-        //
-        each(object, this, function (el, i) {
-            this[i] = el;
-        });
-        each(argsNames, this, function (el, i) {
-            this[i] = el;
-        });
-        this.init && this.init.call(this);
-    }();
-}
-
-function makeClass(classObject) {
-    if(!classObject.init) {classObject.init = function(){};}
-    //
-    var fn = classObject.init;
-    each(classObject, function (el, i) {
-        fn.prototype[i] = el;
-    });
-    return fn;
-}
-
-var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-/**
- * reference http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
- * @param func
- * @returns {Array|{index: number, input: string}}
- */
-function getParamNames(func) {
-    var fnStr = func.toString().replace(STRIP_COMMENTS, '');
-    var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
-    if (result === null) {
-        result = [];
-    }
-    return result
-}
-
-/**
- * new Function(['a','b'],'return ' + ((function(){return 42+a+b;}).toString()) + '();' )(1,2) // --> 45
- * @example makeFnWithArguments([a,b],function(){return 42+a+b;})(1,2); // --> 45
- * @param argsNames
- * @param fn
- * @returns {Function}
- */
-function makeFnWithArguments(argsNames, fn) {
-    return new Function(argsNames, 'return (' + fn.toString() + ')();');
-}
-
-/**
- * @reference http://blog.invntrm.ru/pravoslavnoie-dobavlieniie-html-eliemientov-js/
- * @param o
- * @returns {string}
- */
-function cssStringify(o) {
-    var out = '';
-    $o(o).each(function(v, i, a) {// $$$ - object proxy
-        out += i + ':' + v + ';';
-    });
-    return out;
-}
-
-if (!String.prototype.format) {
-    String.prototype.format = function() {
-        var args = $a(arguments).v;
-        args.unshift(null);
-        return this.replace(/{(\d+)}/g, function(match, number) {
-            return typeof args[number] != 'undefined' ? args[number] : '';
-        });
-    };
-}
-
-HTMLElement.prototype.trigger || (HTMLElement.prototype.trigger = function(event){
-    this.dispatchEvent(new CustomEvent(event));
-    return this;
-});
-NodeList.prototype.addEventListener = function(){
-    var args = $a(arguments).v;
-    if(!arguments.length || !this.length) return;
-    $a(this).each(function(el,i,a){
-        console.log(el, args);
-        HTMLElement.prototype.addEventListener.apply(el,args);
-    });
-};
-
-NodeList.prototype.each = function(fn){
-    $a(this).each(fn);
-};
-
-/**
- * @example ['order', 'call-req'].forEach(setFormInitHandler);
- * @param name
- * @param blurSelector
- * @param formData
- * @param before
- */
-function setFormInitHandler (name, blurSelector, formData, before) {
-    var args = this; // get args object recieved via ['name1','name2'].forEach(setFormInitHandler,{blurSelector:''})
-    if(typeof blurSelector == 'number') blurSelector = undefined;
-    if(formData instanceof Array) formData = undefined;
-    blurSelector || (blurSelector = args.blurSelector);
-    formData || (formData = args.formData);
-    before || (before = args.before);
-    //
-    // Add button click event listener
-    var panel = document.querySelector($s('.{1}-panel').arg(name));
-    document.querySelectorAll($s('.{1}-btn').arg(name))
-        .addEventListener('click', function (e) {
-            Modal.activate(
-                function () {
-                    panel.style.display = 'none'; // modal close callback
-                },
-                blurSelector
-            );
-            panel.style.display = 'block'; // open form panel
-            var formData;
-            this.dataset.formData && (formData = $a(this.dataset.formData.split(':')).obj());
-            $(panel.querySelector('form')).formData(formData);
-            var autofocus = panel.querySelector('[autofocus]');
-            autofocus && autofocus.trigger('focus'); // focus autofocus input if even blurred on previous opens
-            this.trigger('blur'); // blur caller button
-            e.preventDefault(); // deactivate default button action
-        });
-    //
-    // Add form submit event listener
-    $(panel.querySelector('form'))
-        .setSubmit(
-        function (resp, isOk) {
-            // success
-            if (isOk) {
-                openNoty('Успешно', 'Заявка успешно отправлена!', 'success');
-                Modal.deactivate();
-            } else {
-                openNoty('Сбой', '<p>Не удалось передать заявку.</p><p>Попробуйте, пожалуйста, снова через 5 минут</p><p><small>' + resp + '</small></p>', 'fail');
-            }
-        },
-        function (nc, err) {
-            // fail
-            openNoty('Сбой', '<p>Не удалось передать заявку.</p><p>Вероятно, у вас нарушен доступ к интернету</p><p><small>' + err + '</small></p>', 'fail');
-        },
-        function(form) {
-            // before submit
-            before(form);
-        }
-    )
-        .formData($.extend({'data[page]': $('title')[0].innerHTML},formData));
-}
-
-
-
-/**
- * Preload images
- * @type {{isLoadingStarted: boolean, add: add, load: load, init: init, images: Array}}
- */
-var imageContainer = {
-    isLoadingStarted: false,
-    add: function (srcArray) {
-        if (typeof srcArray == 'string') {
-            srcArray = [srcArray];
-        }
-        if (imageContainer.isLoadingStarted) {
-            imageContainer.load(srcArray);
-        }
-        else {
-            console.log(srcArray);
-            imageContainer.images = _.merge(imageContainer.images, srcArray);
-        }
-    },
-    load: function (srcArray) {
-        (srcArray || imageContainer.images).forEach(function (el) {
-            console.log(
-                el,
-                $('<img/>', {src: el, style: 'display:none;'}).appendTo('body')[0]
-            );
-        });
-    },
-    init: function () {
-        $().ready(function () {
-            imageContainer.load();
-            imageContainer.isLoadingStarted = true;
-        });
-    },
-    images: []
-};
-imageContainer.init();
-
-function getShortDate(){
-    var d = new Date();
-    var curr_day = d.getDate();
-    var curr_month = d.getMonth() + 1;
-    var curr_year = d.getFullYear();
-    return "{1}.{2}.{3}".format(curr_day,curr_month,curr_year);
-}
-
-/**
- *
- * @example getRadioGroupValue('group-1');
- */
-function getRadioGroupValue (name){
-    try{
-        $a(document.querySelectorAll('[type="radio"][name="{1}"]'.format(name)))
-            .each(function(el,i){
-                if(el.checked)
-                    throw el.value == 'on' ? i : el.value;
-            });
-    } catch(e){
-        return e;
-    }
-}
-
-function getMeta(name) {
-    return document.querySelector('meta[name="{1}"]'.format(name)).content;
-}

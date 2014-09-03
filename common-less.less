@@ -4,15 +4,22 @@
  */
 
 //
+// @deprecated
+.flex-comb(@val:0 1 auto) {
+  -webkit-flex: @val;
+  flex: @val;
+}
+
+//
 // flex
 // Применяется к: дочернему элементу / flex-элементу.
 // Это сокращение для flex-grow, flex-shrink и flex-basis.
 // Второй и третий параметры (flex-shrink, flex-basis) необязательны.
 // Значение по умолчанию — 0 1 auto.
 // flex: none | [ <'flex-grow'> <'flex-shrink'>? || <'flex-basis'> ]
-.flex(@val:0 1 auto) {
-  -webkit-flex: @val;
-  flex: @val;
+.flex(@grow:0, @shrink: 1, @basis: auto) {
+  -webkit-flex: @grow @shrink @basis;
+  flex: @grow @shrink @basis;
 }
 
 //
@@ -23,14 +30,17 @@
 }
 
 //
+// @deprecated
+.flex-flow-comb (@val: row nowrap) {
+  -webkit-flex-flow: @val;
+  flex-flow: @val;
+}
+
+//
 // Применяется к: родительскому элементу flex-контейнера.
 // Это сокращение для свойств flex-direction и flex-wrap, вместе определяющих главную и поперечную оси.
 // По умолчанию принимает значение row nowrap.
 // flex-flow: <'flex-direction'> || <'flex-wrap'>
-.flex-flow (@val: row nowrap) {
-  -webkit-flex-flow: @val;
-  flex-flow: @val;
-}
 .flex-flow (@dir: row, @wrap: nowrap) {
   -webkit-flex-flow: @dir @wrap;
   flex-flow: @dir @wrap;
@@ -41,7 +51,6 @@
   display: -webkit-flex;
   display: flex;
 }
-
 
 // Workaround Safari bug
 // [CSS Calc Viewport Units Workaround?](http://stackoverflow.com/questions/21224411/css-calc-viewport-units-workaround)
@@ -120,6 +129,28 @@
   transform-origin: @point;
 }
 
+//
+// Greatful trick
+// make block as a img by sizing behaviour (width = height)
+// http://www.mademyday.de/css-height-equals-width-with-pure-css.html
+// (@ratio-x : @ratio-y) (1,1) -> 1:1; (1,2) -> 1:2; (16,9) -> 16:9; ...
+.ratio(@ratio-x: 1,@ratio-y: 1) {
+  position: relative;
+  //  width: 50%; /* desired width */
+  &:before {
+    content: "";
+    display: block;
+    padding-top: 100% / (@ratio-x / @ratio-y);
+  }
+  > .content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+}
+
 .appearance(@val) {
   -webkit-appearance: @val;
   -moz-apperance: @val;
@@ -130,16 +161,15 @@
   text-shadow: @x 0 0 @color, 0 @x 0 @color, -@x 0 0 @color, 0 -@x 0 @color;
 }
 
-
 .a-clear() {
   text-decoration: inherit;
   color: inherit;
   border: inherit;
 }
 
-.a-prevent-default{
+.a-prevent-default {
   .a-clear;
-  &:hover{
+  &:hover {
     .a-clear;
   }
 }
@@ -148,35 +178,10 @@
   -webkit-filter: @val;
   filter: @val;
 }
+
 .hn {
   color: #555;
   margin: 1em 0 0 0;
-}
-
-/**
- * Sidebars
- */
-.bar-wrapper() {
-  .display-flex;
-  & > * {
-    flex-shrink: 1;
-    flex-grow: 1;
-  }
-  & > *:not(.no-bar) {
-    flex-basis: 33%;
-  }
-  .no-bar(@width-center: 800px) {
-    //    width: @width-center !important;
-    flex-basis: @width-center; // !important;
-    flex-grow: 0 !important;
-    flex-shrink: 0 !important;
-  }
-  & > .block {
-    margin: 6vh 0;
-  }
-  &:first-child {
-    margin: 0;
-  }
 }
 
 .ul-prevent-default() {
@@ -207,6 +212,32 @@
 
 
 /**
+ * Sidebars
+ */
+.bar-wrapper() {
+  .display-flex;
+  & > * {
+    flex-shrink: 1;
+    flex-grow: 1;
+  }
+  & > *:not(.no-bar) {
+    flex-basis: 33%;
+  }
+  .no-bar(@width-center: 800px) {
+    //    width: @width-center !important;
+    flex-basis: @width-center; // !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  & > .block {
+    margin: 6vh 0;
+  }
+  &:first-child {
+    margin: 0;
+  }
+}
+
+/**
  * Slider
  */
 .slider(@width: 800px, @height: 20vh) {
@@ -216,11 +247,11 @@
   background: url("//subtlepatterns.com/patterns/graphy.png");
   ul {
     .ul-prevent-default;
-    &>li{
+    & > li {
       background-position: center !important;
       background-size: cover;
       background-repeat: no-repeat;
-      &>a{
+      & > a {
         display: block;
         width: @width;
         height: @height;
@@ -269,6 +300,31 @@
   }
 }
 
+.border-radius-top(@left:6px,@right:6px) {
+  -webkit-border-top-left-radius: @left;
+  -webkit-border-top-right-radius: @right;
+  -moz-border-radius-topleft: @left;
+  -moz-border-radius-topright: @right;
+  border-radius: @left @right 0 0;
+}
 
+.box-sizing(@val:border-box) {
+  -moz-box-sizing: @val;
+  box-sizing: @val;
+}
+
+// @deprecated fonts set
 @font-family-heading: "MyriadPro-Light", "LucidaSans-Unicode", sans-serif;
 @font-family: "LucidaSans-Unicode", sans-serif;
+
+
+.elegant-slim { // body option class
+  // body option class
+  // actual font set
+  @little-font: "LucidaSans-Unicode", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+  @middle-font: "MyriadPro-Regular", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+  @huge-font: "MyriadPro-Light", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+}
+
+@hr-margin: 10px;
+

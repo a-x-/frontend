@@ -4,38 +4,25 @@
  */
 @import "common-less";
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-.hidden {
-  display: none;
-}
+.stash { display: none; }
 
-.open {
-  display: block !important;
-}
+.stash-force { display: none !important; }
 
-.n-imp {
-  color: #bbb;
-}
+.hidden { display: none; }
 
-.hint {
-  cursor: help;
-  border-bottom: 1px dashed;
-}
+.open { display: block !important; }
 
-.dia {
-  display: none;
-}
+.n-imp { color: #bbb; }
 
-.testing-shut {
-  background: rgba(255, 0, 0, .3);
-}
+.hint { cursor: help; border-bottom: 1px dashed; }
 
-h1, h2, h3 {
-  .hn;
-}
+.dia { display: none; }
+
+.testing-shut { background: rgba(255, 0, 0, .3); }
+
+h1, h2, h3 { .hn; }
 
 .animated {
   @ani-dur: 8s;
@@ -100,17 +87,17 @@ a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="ht
 //
 // twitter like behaviour
 // FOOTER LINKS BEHAVIOR & STYLE
-footer a[href^="//"], footer a[href^="http://"], footer a[href^="https://"] {
+footer a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link) {
   background-image: url(/vendor/a-x-/frontend/resources/neo-gray-xtrnl-web2.svg);
   color: gray;
 }
 
-footer:hover a[href^="//"], footer:hover a[href^="http://"], footer:hover a[href^="https://"] {
+footer:hover a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link) {
   background-image: url(/vendor/a-x-/frontend/resources/neo-black-xtrnl-web2.svg);
   color: black;
 }
 
-footer a[href^="//"]:hover, a[href^="http://"]:hover, a[href^="https://"]:hover {
+footer a[href^="//"]:not(.local-link):hover, a[href^="http://"]:not(.local-link):hover, a[href^="https://"]:not(.local-link):hover {
   background-image: url(/vendor/a-x-/frontend/resources/neo-blue-xtrnl-web2.svg);
   color: blue;
 }
@@ -136,9 +123,7 @@ menu ul, nav ul {
   background: rgba(255, 255, 255, .3);
 }
 
-.bg-blur {
-  .filter(blur(1px) grayscale(100%));
-}
+.bg-blur { .filter(blur(1px) grayscale(100%)); }
 
 .panels {
   position: fixed;
@@ -215,14 +200,6 @@ form[action]:not(.form-prevent-common) {
   clear: both;
 }
 
-.stash {
-  display: none;
-}
-
-.stash-force {
-  display: none !important;
-}
-
 .thumbnail-image{
   padding: .5em;
   max-width: 25%;
@@ -252,6 +229,32 @@ code, kbd, pre, samp {
   .author-face {
     float: left;
     margin: .5vw 1vw 0 0;
+  }
+}
+
+.alignright {
+  margin: 0 0 0 10px;
+  float: right;
+}
+.alignleft {
+  margin: 0 10px 0 0;
+  float: left;
+}
+.aligncenter {
+  text-align: center;
+}
+
+/**
+ * <b class="asterisk-mark">*</b>
+ */
+.asterisk-mark {
+  margin-right: -.4em;
+}
+
+.hr { width: 100%; height: 1px; background-color: #e4e4e4; margin: @hr-margin 0; }
+.elegant-slim { // body option class
+  .html5 { // body option class
+    hr {.hr;}
   }
 }
 
