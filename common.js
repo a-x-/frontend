@@ -271,112 +271,110 @@ var JS_COMMENTS_RX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
  * @deprecated
  * @type {*}
  */
-var Ajax = makeObjInit({
-    init: function () {
-        /**
-         * Add jQuery Ajax.form handler
-         * @param done
-         * @param fail
-         * @param dataType
-         * @returns {$.fn}
-         * @param before
-         */
-        $.fn.setSubmit = function (done, fail, before, dataType) {
-            Ajax.setFormSubmit(this, done, fail, before, dataType);
-            return this;
-        };
-        /**
-         * @todo add (key), (keys), (key,val), (keys,vals)
-         * @param dataObj
-         */
-        $.fn.formData = function (dataObj) {
-            if (typeof dataObj == 'object') {
-                var self = this;
-                each(dataObj, function (val, key) {
-                    self.append($('<input/>', {type: 'hidden', name: key, value: val}));
-                });
-            }
-        };
-        /**
-         * Init ajax status animation icon
-         */
-        $.ajaxSetup({
-            beforeSend: function (xhr1, xhr2) {
-                var statusParent = xhr2.statusParent;
-                if (statusParent) {
-                    xhr2.statusEl =
-                        $('<div/>', {class: 'status animation'})
-                            .css({opacity: 0})
-                            .appendTo(statusParent);
-                    setTimeout(function () {
-                        xhr2.statusEl.css({opacity: 1});
-                    });
-                }
-            },
-            complete: function () {
-                var statusEl = this.statusEl;
-                if (statusEl) {
-                    statusEl.css({opacity: 0});
-                    setTimeout(function () {
-                            statusEl.remove();
-                        },
-                        parseInt(statusEl.css('transition-duration'))
-                            * $s(statusEl.css('transition-duration')).match(/[a-z]+/i)[0].replaceMap({ms: 1, s: 1000})
-                    );
-                }
-            }
-        });
-
-    },
-
-    /**
-     * Send the form data via ajax
-     * @param form
-     * @param done
-     * @param fail
-     * @param dataType
-     * @param before
-     */
-    form: function (form, done, fail, before, dataType) {
-        var $form = $(form);
-        form = $form[0];
-        if (before){Ajax.form.onBeforeSubmit = before;}
-        Ajax.form.onBeforeSubmit && Ajax.form.onBeforeSubmit(form);
-        var options = {'type': form.method, 'url': form.action, 'cache': false, 'data': $form.serialize()};
-        if (dataType) {
-            options.dataType = dataType;
-        }
-        options.statusParent = form; // parent node for animation status block
-        //
-        $.ajax(options)
-            .done(function (resp) {
-                var isOk = (/\[\[Ok:.*\]\]/i.test(resp));
-                delayedSetter(done)(resp, isOk);
-                console.log(resp, isOk);
-                if(isOk){form.reset();}
-            })
-            .fail(function (nc, err) {
-                delayedSetter(fail)(nc, err);
-                console.log(nc, err);
-            });
-    },
-
-    /**
-     * Set form ajax submit handler
-     * Example $('form').setSubmit( function(){write success notify handler}, function(){write fail handler});
-     * @param form
-     * @param done
-     * @param fail
-     * @param dataType
-     * @param before
-     */
-    setFormSubmit: function (form, done, fail, before, dataType) {
-        $(form).on('submit', function (e) {
-            Ajax.form(form, done, fail, before, dataType);
-            e.preventDefault(); // prevent browser form submit
-        });
-    }
-});
+//var Ajax = $ && makeObjInit({
+//    init: function () {
+//        /**
+//         * Add jQuery Ajax.form handler
+//         * @param done
+//         * @param fail
+//         * @param dataType
+//         * @returns {$.fn}
+//         * @param before
+//         */
+//        $.fn.setSubmit = function (done, fail, before, dataType) {
+//            Ajax.setFormSubmit(this, done, fail, before, dataType);
+//            return this;
+//        };
+//        /**
+//         * @todo add (key), (keys), (key,val), (keys,vals)
+//         * @param dataObj
+//         */
+//        $.fn.formData = function (dataObj) {
+//            if (typeof dataObj == 'object') {
+//                var self = this;
+//                each(dataObj, function (val, key) {
+//                    self.append($('<input/>', {type: 'hidden', name: key, value: val}));
+//                });
+//            }
+//        };
+//        /**
+//         * Init ajax status animation icon
+//         */
+//        ($['ajaxSetup'] || $['ajaxSettings'])({
+//            beforeSend: function (xhr1, xhr2) {
+//                var statusParent = xhr2.statusParent;
+//                if (statusParent) {
+//                    xhr2.statusEl =
+//                        $('<div/>', {class: 'status animation'})
+//                            .css({opacity: 0})
+//                            .appendTo(statusParent);
+//                    setTimeout(function () {
+//                        xhr2.statusEl.css({opacity: 1});
+//                    });
+//                }
+//            },
+//            complete: function () {
+//                var statusEl = this.statusEl;
+//                if (statusEl) {
+//                    statusEl.css({opacity: 0});
+//                    setTimeout(function () {
+//                            statusEl.remove();
+//                        },
+//                        parseInt(statusEl.css('transition-duration'))
+//                            * $s(statusEl.css('transition-duration')).match(/[a-z]+/i)[0].replaceMap({ms: 1, s: 1000})
+//                    );
+//                }
+//            }
+//        });
+//    },
+//    /**
+//     * Send the form data via ajax
+//     * @param form
+//     * @param done
+//     * @param fail
+//     * @param dataType
+//     * @param before
+//     */
+//    form: function (form, done, fail, before, dataType) {
+//        var $form = $(form);
+//        form = $form[0];
+//        if (before){Ajax.form.onBeforeSubmit = before;}
+//        Ajax.form.onBeforeSubmit && Ajax.form.onBeforeSubmit(form);
+//        var options = {'type': form.method, 'url': form.action, 'cache': false, 'data': $form.serialize()};
+//        if (dataType) {
+//            options.dataType = dataType;
+//        }
+//        options.statusParent = form; // parent node for animation status block
+//
+//        $.ajax(options)
+//            .done(function (resp) {
+//                var isOk = (/\[\[Ok:.*\]\]/i.test(resp));
+//                delayedSetter(done)(resp, isOk);
+//                console.log(resp, isOk);
+//                if(isOk){form.reset();}
+//            })
+//            .fail(function (nc, err) {
+//                delayedSetter(fail)(nc, err);
+//                console.log(nc, err);
+//            });
+//    },
+//
+//    /**
+//     * Set form ajax submit handler
+//     * Example $('form').setSubmit( function(){write success notify handler}, function(){write fail handler});
+//     * @param form
+//     * @param done
+//     * @param fail
+//     * @param dataType
+//     * @param before
+//     */
+//    setFormSubmit: function (form, done, fail, before, dataType) {
+//        $(form).on('submit', function (e) {
+//            Ajax.form(form, done, fail, before, dataType);
+//            e.preventDefault(); // prevent browser form submit
+//        });
+//    }
+//});
 
 /**
  * @deprecated as not required in XXI
