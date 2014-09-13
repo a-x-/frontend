@@ -136,6 +136,7 @@
 // (@ratio-x : @ratio-y) (1,1) -> 1:1; (1,2) -> 1:2; (16,9) -> 16:9; ...
 .ratio(@ratio-x: 1,@ratio-y: 1) {
   position: relative;
+  overflow: hidden;
   //  width: 50%; /* desired width */
   &:before {
     content: "";
