@@ -3,9 +3,12 @@
  * Created: 03.09.14 / 22:59
  */
 var
-    _ = require('../vendor/bower/lodash/dist/lodash'),
-    $ = _.chain;
-    require('../vendor/bower/string-format-js/format.js');
+    _ = require('lodash'),
+    $ = _.chain,
+    fs = require('fs')
+    ;
+
+    require('string-format-js');
 
 module.exports.h = (function () {
     var buildOpenTag = function (attributes, tag) {
@@ -75,3 +78,25 @@ module.exports.readFileJsonNet = function (path, callback, isVerbose) {
     module.exports.readFileNet(path, callbackJson, null, isVerbose);
 };
 
+module.exports.VkFabric = function(){
+    // Сначала нужно получить  клиентский токен так.
+    // Токен будет получен если выполнен вход ВК. Если вход не выполнен, будет это предложено.
+    // Запрос можно сделать просто в браузере. Referer не учитывается.
+    /*
+     https://oauth.vk.com/authorize?client_id=4397384&scope=friends,wall,offline&redirect_uri=https://oauth.vk.com/blank.html&display=page&v=5.21&response_type=token
+     */
+    var VK = require('vksdk');
+    /*
+    Sample of secureSettings:
+     {"vk": {
+     "appID": xxxxxxx,
+     "appSecret": "xxxxxxxxxxxxxxxxxxxx",
+     "mode": "oauth",
+     "token": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     }}
+     */
+    var secureSettings = JSON.parse(fs.readFileSync('../../../_data/settings.json'))['vk'];
+    var vk = new VK(secureSettings);
+    vk.setToken( secureSettings['token'] );
+    return vk;
+};
