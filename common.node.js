@@ -95,7 +95,7 @@ module.exports.VkFabric = function(){
      "token": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
      }}
      */
-    var secureSettings = JSON.parse(fs.readFileSync(__dirname + '/../../../_data/settings.json'))['vk'];
+    var secureSettings = JSON.parse(fs.readFileSync(__dirname + '/../../../_data/parameters.json'))['vk'];
     var vk = new VK(secureSettings);
     vk.setToken( secureSettings );
     return vk;
