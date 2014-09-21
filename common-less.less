@@ -329,3 +329,21 @@
 
 @hr-margin: 10px;
 
+// @link http://a-x-.github.io/flex-fit-the-flex.html
+.container-for-fit-child() {
+  position: relative; // change absolute positioned children offset point
+  > * {
+    //
+    // Fit the parent
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}
+
+.inter-indentation(@size: .5em) {
+  margin-right: @size;
+  &:last-child {margin-right: 0;}
+}

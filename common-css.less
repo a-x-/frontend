@@ -47,7 +47,8 @@ h1, h2, h3 { .hn; }
  * Links
  */
 .xtrnl-lnk { }
-a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link) {.xtrnl-lnk;}
+
+a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="https://"]:not(.local-link) { .xtrnl-lnk; }
 
 .xtrnl-lnk {
   background: url(/vendor/a-x-/frontend/resources/neo-black-xtrnl-web2.svg) right no-repeat;
@@ -79,6 +80,7 @@ a[href^="//"]:not(.local-link), a[href^="http://"]:not(.local-link), a[href^="ht
   margin-top: -10px;
   margin-left: -1px;
 }
+
 .question-link:hover {
   background: cornflowerblue;
   color: white !important;
@@ -200,14 +202,14 @@ form[action]:not(.form-prevent-common) {
   clear: both;
 }
 
-.thumbnail-image{
+.thumbnail-image {
   padding: .5em;
   max-width: 25%;
   height: auto;
- &.thumbnail-left {
-   margin-right: .5em;
-   float: left;
- }
+  &.thumbnail-left {
+    margin-right: .5em;
+    float: left;
+  }
   &.thumbnail-right {
     margin-left: .5em;
     float: right;
@@ -236,10 +238,12 @@ code, kbd, pre, samp {
   margin: 0 0 0 10px;
   float: right;
 }
+
 .alignleft {
   margin: 0 10px 0 0;
   float: left;
 }
+
 .aligncenter {
   text-align: center;
 }
@@ -247,14 +251,13 @@ code, kbd, pre, samp {
 /**
  * <b class="asterisk-mark">*</b>
  */
-.asterisk-mark {
-  margin-right: -.4em;
-}
+.asterisk-mark { margin-right: -.4em; }
 
 .hr { width: 100%; height: 1px; background-color: #e4e4e4; margin: @hr-margin 0; }
+
 .elegant-slim { // body option class
   .html5 { // body option class
-    hr {.hr;}
+    hr { .hr; }
   }
 }
 

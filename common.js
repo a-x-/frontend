@@ -58,18 +58,22 @@ RegExp.escape = function (s) {
 };
 
 var proxies = (function () {
-    var $ProxyStatics = function (self) {
+    var $ProxyStatics = function (self, valuePreprocessor, valuePostprocessor) {
         self.chaining = self.v !== undefined;
         self.toValue = function () { this.chaining = false; return this; }.bind(self);
         self.valueOf = function () { return this.v; }.bind(self);
+        valuePreprocessor = valuePreprocessor || _.identity;
+        valuePostprocessor = valuePostprocessor || _.identity;
         //
         this.wrapFn = function (fn) {
             return function () {
-                var args = _.clone(arguments), out;
-                if (this.v) { args.unshift(this.v); } else { this.v = arguments[0]; }
-                out = fn.apply(args);
+                var args = _.difference(arguments,[]),// array clone lo-dash hack :(
+                    out;
+                if (!this.v) { this.v = valuePreprocessor(arguments[0]); args.shift(); }
+                args.unshift(this.v);
+                out = fn.apply(this, args);
                 if (out !== undefined && this.chaining) { this.v = out; } // иначе при включенном chaining значение потеряется
-                return this.chaining ? this : (this.v || arguments[0]);
+                return this.chaining ? this : (valuePostprocessor(this.v) || arguments[0]);
             }.bind(this);
         }.bind(self);
     };
@@ -83,9 +87,16 @@ var proxies = (function () {
         d: (function () {
             return function (d) {
                 return new function domProxy(d) {
-                    this.v = d && (typeof d === 'string' ? _.toArray(document.querySelectorAll(d)) : [d]);
+                    var valuePreprocessor = function (v) {
+                        return v && (typeof v === 'string' ? _.toArray(document.querySelectorAll(v)) : [v]);
+                    }
+                    var valuePostprocessor = function (v) {
+                        if(v.length === 1) return v[0];
+                        return v;
+                    };
+                    this.v = valuePreprocessor(d);
                     this.el = function () { return this.v[0]; }.bind(this);
-                    var statics = new $ProxyStatics(this);
+                    var statics = new $ProxyStatics(this, valuePreprocessor, valuePostprocessor);
                     //
                     this.append = statics.wrapFn(function (v, child) {
                         v.forEach(function (parent) {
@@ -96,14 +107,19 @@ var proxies = (function () {
                         v.forEach(function (el) { el.classList.remove('stash'); });
                     }.bind(this));
                     this.stash = statics.wrapFn(function (v) {
-                        v.forEach(function (el) { el.classList.stash('stash'); });
+                        v.forEach(function (el) { el.classList.add('stash'); });
                     }.bind(this));
                     this.on = statics.wrapFn(function (v, events, callback, bubbling) {
                         events.split(/\s+/).forEach(function (event) {
                             v.forEach(function (el) { el.addEventListener(event, callback, bubbling); });
                         }.bind(this));
                     }.bind(this));
-                };
+                    this.off = statics.wrapFn(function (v, events, callback, bubbling) {
+                        events.split(/\s+/).forEach(function (event) {
+                            v.forEach(function (el) { el.removeEventListener(event, callback, bubbling); });
+                        }.bind(this));
+                    }.bind(this));
+                }(d);
             };
         }()),
 
@@ -639,4 +655,10 @@ var Modal = {
         return true;
     }
 };
+
+
+function getFileSize (size) {
+    var i = Math.floor(Math.log(size) / Math.log(1024)); // https://en.wikipedia.org/wiki/Logarithm#Change_of_base
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+}
 
