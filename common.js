@@ -10,9 +10,11 @@
  * @returns {*}
  */
 function makeObjInit(object) {
-    var Generator = function () { };
+    var Generator = function () {
+    };
     Generator.prototype = _.clone(object);
-    (object.init || function(){}).call(this);
+    (object.init || function () {
+    }).call(this);
     return new Generator();
 }
 
@@ -21,7 +23,10 @@ function makeObjInit(object) {
  * @return {*}
  */
 function makeClass(classObject) {
-    if(!classObject.init) {classObject.init = function(){};}
+    if (!classObject.init) {
+        classObject.init = function () {
+        };
+    }
     //
     var fn = classObject.init;
     each(classObject, function (el, i) {
@@ -35,20 +40,20 @@ function makeClass(classObject) {
 // Ugly hell extending
 //
 
-HTMLElement.prototype.trigger || (HTMLElement.prototype.trigger = function(event){
+HTMLElement.prototype.trigger || (HTMLElement.prototype.trigger = function (event) {
     this.dispatchEvent(new CustomEvent(event));
     return this;
 });
-NodeList.prototype.addEventListener = function(){
+NodeList.prototype.addEventListener = function () {
     var args = $a(arguments).v;
-    if(!arguments.length || !this.length) return;
-    $a(this).each(function(el,i,a){
+    if (!arguments.length || !this.length) return;
+    $a(this).each(function (el, i, a) {
         console.log(el, args);
-        HTMLElement.prototype.addEventListener.apply(el,args);
+        HTMLElement.prototype.addEventListener.apply(el, args);
     });
 };
 
-NodeList.prototype.each = function(fn){
+NodeList.prototype.each = function (fn) {
     $a(this).each(fn);
 };
 
@@ -58,100 +63,124 @@ RegExp.escape = function (s) {
 };
 
 var proxies = (function () {
-    var $ProxyStatics = function (self, valuePreprocessor, valuePostprocessor) {
-        self.chaining = self.v !== undefined;
-        self.toValue = function () { this.chaining = false; return this; }.bind(self);
-        self.valueOf = function () { return this.v; }.bind(self);
-        valuePreprocessor = valuePreprocessor || _.identity;
-        valuePostprocessor = valuePostprocessor || _.identity;
-        //
-        this.wrapFn = function (fn) {
-            return function () {
-                var args = _.difference(arguments,[]),// array clone lo-dash hack :(
-                    out;
-                if (!this.v) { this.v = valuePreprocessor(arguments[0]); args.shift(); }
-                args.unshift(this.v);
-                out = fn.apply(this, args);
-                if (out !== undefined && this.chaining) { this.v = out; } // иначе при включенном chaining значение потеряется
-                return this.chaining ? this : (valuePostprocessor(this.v) || arguments[0]);
-            }.bind(this);
-        }.bind(self);
-    };
-    return {
-        /**
-         * Dom element or dom elements collection wrapper
-         * @version 2.0 no backward compatibility
-         * $d.append(parentEl,childEl); -> parentEl HTMLElement
-         * $d(parentEl).append(childEl); -> DomProxy{parentEl}
-         */
-        d: (function () {
-            return function (d) {
-                return new function domProxy(d) {
-                    var valuePreprocessor = function (v) {
-                        return v && (typeof v === 'string' ? _.toArray(document.querySelectorAll(v)) : [v]);
+        var $ProxyStatics = function (self, valuePreprocessor, valuePostprocessor) {
+            self.chaining = self.v !== undefined;
+            self.toValue = function () {
+                this.chaining = false;
+                return this;
+            }.bind(self);
+            self.valueOf = function () {
+                return this.v;
+            }.bind(self);
+            valuePreprocessor = valuePreprocessor || _.identity;
+            valuePostprocessor = valuePostprocessor || _.identity;
+            //
+            this.wrapFn = function (fn) {
+                return function () {
+                    var args = _.difference(arguments, []),// array clone lo-dash hack :(
+                        out;
+                    if (!this.v) {
+                        this.v = valuePreprocessor(arguments[0]);
+                        args.shift();
                     }
-                    var valuePostprocessor = function (v) {
-                        if(v.length === 1) return v[0];
-                        return v;
-                    };
-                    this.v = valuePreprocessor(d);
-                    this.el = function () { return this.v[0]; }.bind(this);
-                    var statics = new $ProxyStatics(this, valuePreprocessor, valuePostprocessor);
-                    //
-                    this.append = statics.wrapFn(function (v, child) {
-                        v.forEach(function (parent) {
-                            $d(child).v.forEach(function (child) { parent.appendChild(child); });
-                        });
-                    }.bind(this));
-                    this.show = statics.wrapFn(function (v) {
-                        v.forEach(function (el) { el.classList.remove('stash'); });
-                    }.bind(this));
-                    this.stash = statics.wrapFn(function (v) {
-                        v.forEach(function (el) { el.classList.add('stash'); });
-                    }.bind(this));
-                    this.on = statics.wrapFn(function (v, events, callback, bubbling) {
-                        events.split(/\s+/).forEach(function (event) {
-                            v.forEach(function (el) { el.addEventListener(event, callback, bubbling); });
-                        }.bind(this));
-                    }.bind(this));
-                    this.off = statics.wrapFn(function (v, events, callback, bubbling) {
-                        events.split(/\s+/).forEach(function (event) {
-                            v.forEach(function (el) { el.removeEventListener(event, callback, bubbling); });
-                        }.bind(this));
-                    }.bind(this));
-                }(d);
-            };
-        }()),
-
-        /**
-         * @version 2.0 no backward compatibility
-         */
-        s: (function () {
-            return function (s) {
-                var $S = function (s) {
-                    this.v = s;
-                    var statics = new $ProxyStatics(this);
-                    //
-                    /**
-                     * Map replace
-                     * @param pattern       string|regExp|object
-                     * @param replacement   string
-                     * @example $s ('123').replace( {'1': -1, '2':-2, '3':-3} )
-                     */
-                    this.replaceMap = statics.wrapFn(function (v, /*string|regExp|object*/pattern, /*=*/replacement) {
-                        var strNew;
-                        if (_.isPlainObject(pattern)) {
-                            _.forEach(pattern, function (replacement, pattern) { strNew = v.replace(pattern, replacement); });
+                    args.unshift(this.v);
+                    out = fn.apply(this, args);
+                    if (out !== undefined && this.chaining) {
+                        this.v = out;
+                    } // иначе при включенном chaining значение потеряется
+                    return this.chaining ? this : (valuePostprocessor(this.v) || arguments[0]);
+                }.bind(this);
+            }.bind(self);
+        };
+        return {
+            /**
+             * Dom element or dom elements collection wrapper
+             * @version 2.0 no backward compatibility
+             * $d.append(parentEl,childEl); -> parentEl HTMLElement
+             * $d(parentEl).append(childEl); -> DomProxy{parentEl}
+             */
+            d: (function () {
+                return function (d) {
+                    return new function domProxy(d) {
+                        var valuePreprocessor = function (v) {
+                            return v && (typeof v === 'string' ? _.toArray(document.querySelectorAll(v)) : [v]);
                         }
-                        return strNew;
-                    }.bind(this));
+                        var valuePostprocessor = function (v) {
+                            if (v.length === 1) return v[0];
+                            return v;
+                        };
+                        this.v = valuePreprocessor(d);
+                        this.el = function () {
+                            return this.v[0];
+                        }.bind(this);
+                        var statics = new $ProxyStatics(this, valuePreprocessor, valuePostprocessor);
+                        //
+                        this.append = statics.wrapFn(function (v, child) {
+                            v.forEach(function (parent) {
+                                $d(child).v.forEach(function (child) {
+                                    parent.appendChild(child);
+                                });
+                            });
+                        }.bind(this));
+                        this.show = statics.wrapFn(function (v) {
+                            v.forEach(function (el) {
+                                el.classList.remove('stash');
+                            });
+                        }.bind(this));
+                        this.stash = statics.wrapFn(function (v) {
+                            v.forEach(function (el) {
+                                el.classList.add('stash');
+                            });
+                        }.bind(this));
+                        this.on = statics.wrapFn(function (v, events, callback, bubbling) {
+                            events.split(/\s+/).forEach(function (event) {
+                                v.forEach(function (el) {
+                                    el.addEventListener(event, callback, bubbling);
+                                });
+                            }.bind(this));
+                        }.bind(this));
+                        this.off = statics.wrapFn(function (v, events, callback, bubbling) {
+                            events.split(/\s+/).forEach(function (event) {
+                                v.forEach(function (el) {
+                                    el.removeEventListener(event, callback, bubbling);
+                                });
+                            }.bind(this));
+                        }.bind(this));
+                    }(d);
                 };
-                $S.prototype = String.prototype; // extend String type
-                return new $S(s);
-            };
-        }())
-    };
-}()),
+            }()),
+
+            /**
+             * @version 2.0 no backward compatibility
+             */
+            s: (function () {
+                return function (s) {
+                    var $S = function (s) {
+                        this.v = s;
+                        var statics = new $ProxyStatics(this);
+                        //
+                        /**
+                         * Map replace
+                         * @param pattern       string|regExp|object
+                         * @param replacement   string
+                         * @example $s ('123').replace( {'1': -1, '2':-2, '3':-3} )
+                         */
+                        this.replaceMap = statics.wrapFn(function (v, /*string|regExp|object*/pattern, /*=*/replacement) {
+                            var strNew;
+                            if (_.isPlainObject(pattern)) {
+                                _.forEach(pattern, function (replacement, pattern) {
+                                    strNew = v.replace(pattern, replacement);
+                                });
+                            }
+                            return strNew;
+                        }.bind(this));
+                    };
+                    $S.prototype = String.prototype; // extend String type
+                    return new $S(s);
+                };
+            }())
+        };
+    }()),
     $s = proxies.s,
     $d = proxies.d;
 
@@ -194,7 +223,7 @@ function delayedSetter(haystack, /**String=*/key) {
  */
 function cssStringify(o) {
     var out = '';
-    $o(o).each(function(v, i, a) {// $$$ - object proxy
+    $o(o).each(function (v, i, a) {// $$$ - object proxy
         out += i + ':' + v + ';';
     });
     return out;
@@ -208,7 +237,7 @@ function cssStringify(o) {
  * @param additionData
  * @param callbacks
  */
-function setFormInitHandler (formSelector, additionData, callbacks) {
+function setFormInitHandler(formSelector, additionData, callbacks) {
     // v.1 deleted
     // todo write setFormInitHandler v.2
 }
@@ -220,26 +249,26 @@ function setFormInitHandler (formSelector, additionData, callbacks) {
  * <link rel="prefetch" href="...jpg" />
  */
 
-function getShortDate(){
+function getShortDate() {
     var d = new Date();
     var curr_day = d.getDate();
     var curr_month = d.getMonth() + 1;
     var curr_year = d.getFullYear();
-    return "{1}.{2}.{3}".format(curr_day,curr_month,curr_year);
+    return "{1}.{2}.{3}".format(curr_day, curr_month, curr_year);
 }
 
 /**
  *
  * @example getRadioGroupValue('group-1');
  */
-function getRadioGroupValue (name){
-    try{
+function getRadioGroupValue(name) {
+    try {
         $a(document.querySelectorAll('[type="radio"][name="{1}"]'.format(name)))
-            .each(function(el,i){
-                if(el.checked)
+            .each(function (el, i) {
+                if (el.checked)
                     throw el.value == 'on' ? i : el.value;
             });
-    } catch(e){
+    } catch (e) {
         return e;
     }
     return undefined;
@@ -249,7 +278,7 @@ function getMeta(name) {
     return document.querySelector('meta[name="{1}"]'.format(name)).content;
 }
 
-try{
+try {
     if ($ && $.pnotify) {
         /**
          * Show notification
@@ -271,9 +300,11 @@ try{
                 delay: delay || $.pnotify.DELAY
             });
         }
+
         $.pnotify.DELAY = 4000;
     }
-}catch (e){}
+} catch (e) {
+}
 
 
 var JS_COMMENTS_RX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -412,10 +443,10 @@ function getParamNames(func) {
  * @deprecated by lodash
  */
 if (!String.prototype.format) {
-    String.prototype.format = function() {
+    String.prototype.format = function () {
         var args = $a(arguments).v;
         args.unshift(null);
-        return this.replace(/{(\d+)}/g, function(match, number) {
+        return this.replace(/{(\d+)}/g, function (match, number) {
             return typeof args[number] != 'undefined' ? args[number] : '';
         });
     };
@@ -459,12 +490,12 @@ function curry(func) {
  * @param fn
  * @returns {*}
  */
-function forEach (arr, fn){
+function forEach(arr, fn) {
     var i = 0, l = arr.length;
     var result;
-    for(i=0;i<l;++i){
-        result = fn(arr[i],i,arr);
-        if(result !== undefined) {
+    for (i = 0; i < l; ++i) {
+        result = fn(arr[i], i, arr);
+        if (result !== undefined) {
             return result;
         }
     }
@@ -512,14 +543,16 @@ var ObjectProxy = function (o) {
         (oEach.bind(this.obj))(fn);
         return this;
     }.bind(this);
-    this.copy = function(){return Object.create(this.obj);}.bind(this);
-    this.copyDeep = function clone(){
+    this.copy = function () {
+        return Object.create(this.obj);
+    }.bind(this);
+    this.copyDeep = function clone() {
         var obj = this.obj;
-        if(obj === null || typeof(obj) !== 'object') {
+        if (obj === null || typeof(obj) !== 'object') {
             return obj;
         }
         var temp = obj.constructor(); // changed
-        this.each(function(el,key){
+        this.each(function (el, key) {
             temp[key] = $o(obj[key]).copyDeep();
         });
         return temp;
@@ -549,13 +582,21 @@ var ArrayProxy = function (a) {
         this.v = [];
     }
     this.each = Array.prototype.forEach.bind(this.v);
-    this.obj = akv2okv.bind(this,this.v); // curry once
-    this.fill = function(count,value){return this.v = new Array(1 + count).join(value).split('');}.bind(this);
-    this.del = function(index){this.v.splice(index, 1); return this;}.bind(this);
-    this.uniq = function(arr) {
+    this.obj = akv2okv.bind(this, this.v); // curry once
+    this.fill = function (count, value) {
+        return this.v = new Array(1 + count).join(value).split('');
+    }.bind(this);
+    this.del = function (index) {
+        this.v.splice(index, 1);
+        return this;
+    }.bind(this);
+    this.uniq = function (arr) {
         var hash = {}, outArr = [];
-        arr.forEach(function(el) {
-            if(!hash[el]) {hash[el] = true; outArr.push(el)}
+        arr.forEach(function (el) {
+            if (!hash[el]) {
+                hash[el] = true;
+                outArr.push(el)
+            }
         });
         return outArr;
     };
@@ -566,7 +607,9 @@ var ArrayProxy = function (a) {
     }.bind(this);
     //
     // get value copy of array
-    this.copy = function(){ return [].concat(this.v); }.bind(this);
+    this.copy = function () {
+        return [].concat(this.v);
+    }.bind(this);
     //
     // ...
 }, ArrayProxyConstruct = function (o) {
@@ -648,7 +691,7 @@ var Modal = {
         Modal.onClose();
         $('html').removeClass('fixed');
         Modal._$shut.remove();
-        $(this.blurSelector ).removeClass('bg-blur');
+        $(this.blurSelector).removeClass('bg-blur');
         Modal.isModal = false;
         slidepage && (slidepage.isPageFreeze = false);
         //
@@ -657,8 +700,19 @@ var Modal = {
 };
 
 
-function getFileSize (size) {
+function getFileSize(size) {
     var i = Math.floor(Math.log(size) / Math.log(1024)); // https://en.wikipedia.org/wiki/Logarithm#Change_of_base
     return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
 }
 
+var $e = {
+    ENTER: 13,
+    /**
+     *
+     * @param e Event
+     * @returns {boolean}
+     */
+    isCtrlEnter: function (e) {
+        return (e.keyCode === $e.ENTER && e.ctrlKey);
+    }
+};
