@@ -574,7 +574,7 @@ var ArrayProxy = function (a) {
         }
         else { // Convert array like object to array
             this.v = [].slice.call(a);
-            if (!this.v || !this.v.length) {
+            if (!this.v) { // removed:  `|| !this.v.length` for preventing [[a]]
                 this.v = [a];
             }
         }
@@ -615,6 +615,10 @@ var ArrayProxy = function (a) {
 }, ArrayProxyConstruct = function (o) {
     return new ArrayProxy(o);
 }, $a = ArrayProxyConstruct;
+
+//
+// For $d, domProxy, $s see proxies
+//
 
 /**
  * @deprecated as no required in XXI
