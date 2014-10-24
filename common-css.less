@@ -22,8 +22,6 @@
 
 .testing-shut { background: rgba(255, 0, 0, .3); }
 
-h1, h2, h3 { .hn; }
-
 .animated {
   @ani-dur: 8s;
   animation-duration: @ani-dur;
@@ -126,6 +124,7 @@ menu ul, nav ul {
 }
 
 .bg-blur { .filter(blur(1px) grayscale(100%)); }
+.bg-white { .filter(grayscale(100%) opacity(0)); }
 
 .panels {
   position: fixed;
