@@ -358,3 +358,9 @@ h1, h2, h3 { .hn; }
   margin-right: @size;
   &:last-child {margin-right: 0;}
 }
+
+.random-color(){
+  @randomColor: `Math.floor(Math.random()*16777215).toString(16)`;
+  @colorHex: e(@randomColor);
+  @color: ~"#@{colorHex}";
+}
