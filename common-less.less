@@ -4,6 +4,12 @@
  */
 
 //
+// Don't move to common-css
+// Yes, it produces css here, but it switch up .hn alias for headers!
+h1, h2, h3 { .hn; }
+
+
+//
 // @deprecated
 .flex-comb(@val:0 1 auto) {
   -webkit-flex: @val;
@@ -165,7 +171,7 @@
 .a-clear() {
   text-decoration: inherit;
   color: inherit;
-  border: inherit;
+  border: none;
 }
 
 .a-prevent-default() {
@@ -209,6 +215,11 @@
     text-align: center;
     display: inline-block;
   }
+}
+
+.h-center(){
+  margin-left: auto;
+  margin-right: auto;
 }
 
 
@@ -346,4 +357,10 @@
 .inter-indentation(@size: .5em) {
   margin-right: @size;
   &:last-child {margin-right: 0;}
+}
+
+.random-color(){
+  @randomColor: `Math.floor(Math.random()*16777215).toString(16)`;
+  @colorHex: e(@randomColor);
+  @color: ~"#@{colorHex}";
 }
