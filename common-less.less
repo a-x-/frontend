@@ -10,7 +10,6 @@
 // Yes, it produces css here, but it switch up .hn alias for headers!
 h1, h2, h3 { .hn; }
 
-
 //
 // @deprecated
 .flex-comb(@val:0 1 auto) {
@@ -63,7 +62,7 @@ h1, h2, h3 { .hn; }
   display: flex;
 }
 
-.align-self(@val){
+.align-self(@val) {
   align-self: @val;
 }
 
@@ -226,11 +225,10 @@ h1, h2, h3 { .hn; }
   }
 }
 
-.h-center(){
+.h-center() {
   margin-left: auto;
   margin-right: auto;
 }
-
 
 /**
  * Sidebars
@@ -338,13 +336,12 @@ h1, h2, h3 { .hn; }
 @font-family-heading: "MyriadPro-Light", "LucidaSans-Unicode", sans-serif;
 @font-family: "LucidaSans-Unicode", sans-serif;
 
-
 //.elegant-slim { // body option class
-  // body option class
-  // actual font set
-  @little-font: "LucidaSans-Unicode", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
-  @middle-font: "MyriadPro-Regular", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
-  @huge-font: "MyriadPro-Light", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+// body option class
+// actual font set
+@little-font: "LucidaSans-Unicode", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+@middle-font: "MyriadPro-Regular", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+@huge-font: "MyriadPro-Light", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
 //}
 
 @hr-margin: 10px;
@@ -365,10 +362,10 @@ h1, h2, h3 { .hn; }
 
 .inter-indentation(@size: .5em) {
   margin-right: @size;
-  &:last-child {margin-right: 0;}
+  &:last-child { margin-right: 0; }
 }
 
-.random-color(){
+.random-color() {
   @randomColor: `Math.floor(Math.random()*16777215).toString(16)`;
   @colorHex: e(@randomColor);
   @color: ~"#@{colorHex}";
