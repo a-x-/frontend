@@ -22,6 +22,11 @@
 
 .testing-shut { background: rgba(255, 0, 0, .3); }
 
+.hn {
+  color: #555;
+  margin: 1em 0 0 0;
+}
+
 .animated {
   @ani-dur: 8s;
   animation-duration: @ani-dur;
@@ -124,7 +129,10 @@ menu ul, nav ul {
 }
 
 .bg-blur { .filter(blur(1px) grayscale(100%)); }
+
 .bg-white { .filter(grayscale(100%) opacity(0)); }
+
+[disabled] { cursor: not-allowed !important; }
 
 .panels {
   position: fixed;
@@ -177,11 +185,10 @@ form[action]:not(.form-prevent-common) {
 
 .form-inline-extra {
   // .form-prevent-common;
-  .input-group>.form-control {
+  .input-group > .form-control {
     width: auto !important;
   }
 }
-
 
 .animation.status {
   width: 20px;

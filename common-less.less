@@ -8,6 +8,8 @@
 //
 // Don't move to common-css
 // Yes, it produces css here, but it switch up .hn alias for headers!
+.hn() { }
+
 h1, h2, h3 { .hn; }
 
 //
@@ -54,6 +56,11 @@ h1, h2, h3 { .hn; }
 .flex-flow (@dir: row, @wrap: nowrap) {
   -webkit-flex-flow: @dir @wrap;
   flex-flow: @dir @wrap;
+}
+
+.display-inline-flex(@val:auto) {
+  display: -webkit-inline-flex;
+  display: inline-flex;
 }
 
 .display-flex(@val:auto) {
@@ -192,11 +199,6 @@ h1, h2, h3 { .hn; }
 .filter (@val) {
   -webkit-filter: @val;
   filter: @val;
-}
-
-.hn {
-  color: #555;
-  margin: 1em 0 0 0;
 }
 
 .ul-prevent-default() {

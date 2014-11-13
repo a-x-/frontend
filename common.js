@@ -35,36 +35,27 @@ function makeClass(classObject) {
     return fn;
 }
 
+function getJSON(path, callback) {
+    var xhr2 = new XMLHttpRequest();
+    xhr2.overrideMimeType('application/json');
+    xhr2.onload = function (e) {
+        callback(JSON.parse(xhr2.responseText), this.status, this, e);
+    };
+    xhr2.open('GET', path, true);
+    xhr2.send();
+};
+
 
 //
-// Ugly hell extending
+// Pretty cool wrappers
 //
-
-HTMLElement.prototype.trigger || (HTMLElement.prototype.trigger = function (event) {
-    this.dispatchEvent(new CustomEvent(event));
-    return this;
-});
-NodeList.prototype.addEventListener = function () {
-    var args = $a(arguments).v;
-    if (!arguments.length || !this.length) return;
-    $a(this).each(function (el, i, a) {
-        console.log(el, args);
-        HTMLElement.prototype.addEventListener.apply(el, args);
-    });
-};
-
-NodeList.prototype.each = function (fn) {
-    $a(this).each(fn);
-};
-
-
-RegExp.escape = function (s) {
-    return s.replace(/[\-\/\^\$\*\+\?\.\(\)\|\[\]\{\}\\]/g, '\\$&');
-};
 
 var proxies = (function () {
         var $ProxyStatics = function (self, valuePreprocessor, valuePostprocessor) {
             self.chaining = self.v !== undefined;
+            /**
+             * Switch off chaining and return proxy
+             */
             self.toValue = function () {
                 this.chaining = false;
                 return this;
@@ -77,7 +68,7 @@ var proxies = (function () {
             //
             this.wrapFn = function (fn) {
                 return function () {
-                    var args = _.difference(arguments, []),// array clone lo-dash hack :(
+                    var args = _.difference(arguments, []), // array clone lo-dash hack :(
                         out;
                     if (!this.v) {
                         this.v = valuePreprocessor(arguments[0]);
@@ -100,10 +91,14 @@ var proxies = (function () {
              * $d(parentEl).append(childEl); -> DomProxy{parentEl}
              */
             d: (function () {
-                return function (d) {
+                var proxy = function (d) {
                     return new function domProxy(d) {
                         var valuePreprocessor = function (v) {
-                            return v && (typeof v === 'string' ? _.toArray(document.querySelectorAll(v)) : [v]);
+                            if (!v)return;
+                            if (v.toString() === "[object domProxy]") return v.valueOf();
+                            if (v.toString() === '[object NodeList]') return _.toArray(v);
+                            if (_.isArray(v)) return v;
+                            return typeof v === 'string' ? _.toArray(document.querySelectorAll(v)) : [v];
                         }
                         var valuePostprocessor = function (v) {
                             if (v.length === 1) return v[0];
@@ -146,8 +141,49 @@ var proxies = (function () {
                                 });
                             }.bind(this));
                         }.bind(this));
+                        /**
+                         * Find child by css query and callback
+                         */
+                        this.query = statics.wrapFn(function (v, query, callback) {
+                            v.forEach(function (el) {
+                                callback(el.querySelector(query), el);
+                            });
+                        }.bind(this));
+                        this.toString = function () {
+                            return '[object domProxy]'
+                        };
+                        d.prototype = HTMLElement.prototype;
+                        //d.__proto__ = HTMLElement.prototype;
+                        //d.setAttribute.call(d.el(), 'dfd','gfg')
                     }(d);
                 };
+                proxy.TEMP_STATIC_PARAM = true;
+                proxy.create = function (tagName, params, value) {
+                    var element = document.createElement(tagName);
+                    //var element.setAttribute()
+                    _(params).forEach(function (value, name) {
+                        // Transform style object to string
+                        if (name === 'style' && _.isPlainObject(value)) {
+                            value = _(value)
+                                .map(function (ruleValue, ruleName) {
+                                    return '{1}: {2}'.format(ruleName, ruleValue);
+                                })
+                                .join(';');
+                        } else if (name === 'class' && _.isArray(value)) {
+                            value = value.join(' ');
+                        } else if (name === 'dataset') {
+                            _(value).forEach(function (itemValue, itemName) {
+                                element.dataset[itemName] = itemValue;
+                            });
+                            return;
+                        }
+                        element.setAttribute(name, value);
+                    });
+                    if (value)
+                        element[!!~['input', 'textarea'].indexOf(tagName) ? 'value' : 'innerHTML'] = value;
+                    return $d(element);
+                };
+                return proxy;
             }()),
 
             /**
@@ -165,7 +201,7 @@ var proxies = (function () {
                          * @param replacement   string
                          * @example $s ('123').replace( {'1': -1, '2':-2, '3':-3} )
                          */
-                        this.replaceMap = statics.wrapFn(function (v, /*string|regExp|object*/pattern, /*=*/replacement) {
+                        this.replaceMap = statics.wrapFn(function (v, /*string|regExp|object*/ pattern, /*=*/ replacement) {
                             var strNew;
                             if (_.isPlainObject(pattern)) {
                                 _.forEach(pattern, function (replacement, pattern) {
@@ -184,30 +220,94 @@ var proxies = (function () {
     $s = proxies.s,
     $d = proxies.d;
 
+var $form = {
+    send: function (form, callback) {
+        var formData = new FormData(form);
+        var xhr2 = new XMLHttpRequest();
+        xhr2.open(form.method || 'post', form.action, true);
+        xhr2.onload = callback;
+        xhr2.send(formData);
+    },
+
+    /**
+     * Make form ajaxy a bit
+     * Note: see also MLaritz/Vanilla-Notify for notifications
+     * @example see ab-club/vip/support for reference
+     * @param form
+     * @param success
+     * @param fail
+     */
+    init: function (form, success, fail) {
+        var submit = function () {
+            sendForm(form, function () {
+                (this.status === 200 ? success : fail).apply(this, arguments);
+            });
+        };
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            submit();
+        });
+        form.addEventListener('keydown', function (e) {
+            if (!$e.isCtrlEnter(e)) return;
+            submit();
+        });
+    },
+
+    /**
+     * Auto expanding textarea
+     * @author Thanks to great snippet: https://github.com/ramitos/resizable-textarea
+     * @param area
+     */
+    autoExpandingTextarea: function (area, max) {
+        area.addEventListener('input', function (e) {
+            var rows = parseInt(area.getAttribute('rows'));
+            var scrollHeight = area.scrollHeight;
+            var height = area.clientHeight;
+            var rowsNew = Math.ceil(((scrollHeight * rows) / height));
+            if (rowsNew > (max || 10)) return;
+            area.setAttribute('rows', rowsNew)
+        });
+    },
+
+    /**
+     *
+     * @example getRadioGroupValue('group-1');
+     */
+    getRadioGroupValue: function (name) {
+        try {
+            _(document.querySelectorAll('[type="radio"][name="{1}"]'.format(name)))
+                .forEach(function (el, i) {
+                    if (el.checked)
+                        throw el.value == 'on' ? i : el.value;
+                });
+        } catch (e) {
+            return e;
+        }
+        return undefined;
+    }
+};
+
 /**
  * Make template processors if haystack described by box or variable enclosure
  * @param haystack String|HTMLElement|Function - box or variable enclosure or complete function
  * @param key String - variable_enclosure's variable_name
  * @returns Function
  */
-function delayedSetter(haystack, /**String=*/key) {
+function delayedSetter(haystack, /**String=*/ key) {
     var processorCallback;
     if (!haystack instanceof Function) {
-        if (haystack instanceof String || haystack instanceof HTMLElement) {// box is
+        if (haystack instanceof String || haystack instanceof HTMLElement) { // box is
             processorCallback = function (needle) {
                 $(haystack).html(needle);
             };
-        }
-        else if (haystack instanceof Object) {
+        } else if (haystack instanceof Object) {
             processorCallback = function (needle) {
                 haystack[key] = needle;
             };
         }
-    }
-    else if (haystack) {
+    } else if (haystack) {
         processorCallback = haystack;
-    }
-    else {
+    } else {
         processorCallback = function () {
         };
     }
@@ -216,38 +316,10 @@ function delayedSetter(haystack, /**String=*/key) {
 }
 
 
-/**
- * @reference http://blog.invntrm.ru/pravoslavnoie-dobavlieniie-html-eliemientov-js/
- * @param o
- * @returns {string}
- */
-function cssStringify(o) {
-    var out = '';
-    $o(o).each(function (v, i, a) {// $$$ - object proxy
-        out += i + ':' + v + ';';
-    });
-    return out;
+function getMeta(name) {
+    return document.querySelector('meta[name="{1}"]'.format(name)).content;
 }
 
-/**
- * Make form ajax-able
- * @version 2.0
- * @example ['order', 'call-req'].forEach(setFormInitHandler);
- * @param formSelector
- * @param additionData
- * @param callbacks
- */
-function setFormInitHandler(formSelector, additionData, callbacks) {
-    // v.1 deleted
-    // todo write setFormInitHandler v.2
-}
-
-/**
- * Pre-load images
- * @type {{isLoadingStarted: boolean, add: add, load: load, init: init, images: Array}}
- * HTML5 Link Prefetch
- * <link rel="prefetch" href="...jpg" />
- */
 
 function getShortDate() {
     var d = new Date();
@@ -257,27 +329,92 @@ function getShortDate() {
     return "{1}.{2}.{3}".format(curr_day, curr_month, curr_year);
 }
 
-/**
- *
- * @example getRadioGroupValue('group-1');
- */
-function getRadioGroupValue(name) {
-    try {
-        $a(document.querySelectorAll('[type="radio"][name="{1}"]'.format(name)))
-            .each(function (el, i) {
-                if (el.checked)
-                    throw el.value == 'on' ? i : el.value;
-            });
-    } catch (e) {
-        return e;
+
+function getFileSize(size) {
+    var i = Math.floor(Math.log(size) / Math.log(1024)); // https://en.wikipedia.org/wiki/Logarithm#Change_of_base
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+}
+
+var $e = {
+    ENTER: 13,
+    /**
+     *
+     * @param e Event
+     * @returns {boolean}
+     */
+    isCtrlEnter: function (e) {
+        return (e.keyCode === $e.ENTER && e.ctrlKey);
     }
-    return undefined;
+};
+
+//var $localStorage = Object.create(
+//    {},{}
+//);
+
+// Simple powerfull strong logger :)
+var _d = console.log.bind(console);
+
+//var mixins = {};
+//_.mixin(mixins);
+var JS_COMMENTS_RX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+
+
+//
+// Ugly hell extending
+//
+
+HTMLElement.prototype.trigger || (HTMLElement.prototype.trigger = function (event) {
+    this.dispatchEvent(new CustomEvent(event));
+    return this;
+});
+NodeList.prototype.addEventListener = function () {
+    var args = _(arguments).toArray();
+    if (!arguments.length || !this.length) return;
+    _(this).forEach(function (el, i, a) {
+        HTMLElement.prototype.addEventListener.apply(el, args);
+    });
+};
+
+NodeList.prototype.each = function (fn) {
+    _(this).forEach(fn);
+};
+
+
+RegExp.escape = function (s) {
+    return s.replace(/[\-\/\^\$\*\+\?\.\(\)\|\[\]\{\}\\]/g, '\\$&');
+};
+
+
+/**
+ * http://stackoverflow.com/questions/1026069/capitalize-the-first-letter-of-string-in-javascript
+ * @returns {string}
+ */
+String.prototype.toCapital = function () {
+    var string = this;
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+};
+
+//
+// Deprecated functions
+//
+
+/**
+ * @deprecated by $d.create
+ * @reference http://blog.invntrm.ru/pravoslavnoie-dobavlieniie-html-eliemientov-js/
+ * @param o
+ * @returns {string}
+ */
+function cssStringify(o) {
+    var out = '';
+    _(o).forEach(function (v, i, a) {
+        out += i + ':' + v + ';';
+    });
+    return out;
 }
 
-function getMeta(name) {
-    return document.querySelector('meta[name="{1}"]'.format(name)).content;
-}
-
+/**
+ * @deprecated as so narrow
+ */
 try {
     if ($ && $.pnotify) {
         /**
@@ -287,7 +424,7 @@ try {
          * @param delay integer
          * @param type string
          */
-        function openNoty(title, text, /*string=*/type, /*integer=*/delay) {
+        function openNoty(title, text, /*string=*/ type, /*integer=*/ delay) {
             if (type == 'fail') {
                 type = 'error';
             }
@@ -305,123 +442,6 @@ try {
     }
 } catch (e) {
 }
-
-
-var JS_COMMENTS_RX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-
-//
-// Deprecated functions
-//
-
-
-/**
- * @deprecated
- * @type {*}
- */
-//var Ajax = $ && makeObjInit({
-//    init: function () {
-//        /**
-//         * Add jQuery Ajax.form handler
-//         * @param done
-//         * @param fail
-//         * @param dataType
-//         * @returns {$.fn}
-//         * @param before
-//         */
-//        $.fn.setSubmit = function (done, fail, before, dataType) {
-//            Ajax.setFormSubmit(this, done, fail, before, dataType);
-//            return this;
-//        };
-//        /**
-//         * @todo add (key), (keys), (key,val), (keys,vals)
-//         * @param dataObj
-//         */
-//        $.fn.formData = function (dataObj) {
-//            if (typeof dataObj == 'object') {
-//                var self = this;
-//                each(dataObj, function (val, key) {
-//                    self.append($('<input/>', {type: 'hidden', name: key, value: val}));
-//                });
-//            }
-//        };
-//        /**
-//         * Init ajax status animation icon
-//         */
-//        ($['ajaxSetup'] || $['ajaxSettings'])({
-//            beforeSend: function (xhr1, xhr2) {
-//                var statusParent = xhr2.statusParent;
-//                if (statusParent) {
-//                    xhr2.statusEl =
-//                        $('<div/>', {class: 'status animation'})
-//                            .css({opacity: 0})
-//                            .appendTo(statusParent);
-//                    setTimeout(function () {
-//                        xhr2.statusEl.css({opacity: 1});
-//                    });
-//                }
-//            },
-//            complete: function () {
-//                var statusEl = this.statusEl;
-//                if (statusEl) {
-//                    statusEl.css({opacity: 0});
-//                    setTimeout(function () {
-//                            statusEl.remove();
-//                        },
-//                        parseInt(statusEl.css('transition-duration'))
-//                            * $s(statusEl.css('transition-duration')).match(/[a-z]+/i)[0].replaceMap({ms: 1, s: 1000})
-//                    );
-//                }
-//            }
-//        });
-//    },
-//    /**
-//     * Send the form data via ajax
-//     * @param form
-//     * @param done
-//     * @param fail
-//     * @param dataType
-//     * @param before
-//     */
-//    form: function (form, done, fail, before, dataType) {
-//        var $form = $(form);
-//        form = $form[0];
-//        if (before){Ajax.form.onBeforeSubmit = before;}
-//        Ajax.form.onBeforeSubmit && Ajax.form.onBeforeSubmit(form);
-//        var options = {'type': form.method, 'url': form.action, 'cache': false, 'data': $form.serialize()};
-//        if (dataType) {
-//            options.dataType = dataType;
-//        }
-//        options.statusParent = form; // parent node for animation status block
-//
-//        $.ajax(options)
-//            .done(function (resp) {
-//                var isOk = (/\[\[Ok:.*\]\]/i.test(resp));
-//                delayedSetter(done)(resp, isOk);
-//                console.log(resp, isOk);
-//                if(isOk){form.reset();}
-//            })
-//            .fail(function (nc, err) {
-//                delayedSetter(fail)(nc, err);
-//                console.log(nc, err);
-//            });
-//    },
-//
-//    /**
-//     * Set form ajax submit handler
-//     * Example $('form').setSubmit( function(){write success notify handler}, function(){write fail handler});
-//     * @param form
-//     * @param done
-//     * @param fail
-//     * @param dataType
-//     * @param before
-//     */
-//    setFormSubmit: function (form, done, fail, before, dataType) {
-//        $(form).on('submit', function (e) {
-//            Ajax.form(form, done, fail, before, dataType);
-//            e.preventDefault(); // prevent browser form submit
-//        });
-//    }
-//});
 
 /**
  * @deprecated as not required in XXI
@@ -444,177 +464,13 @@ function getParamNames(func) {
  */
 if (!String.prototype.format) {
     String.prototype.format = function () {
-        var args = $a(arguments).v;
+        var args = _.toArray(arguments);
         args.unshift(null);
         return this.replace(/{(\d+)}/g, function (match, number) {
             return typeof args[number] != 'undefined' ? args[number] : '';
         });
     };
 }
-/**
- * @deprecated by lodash
- * @example ['k','v'] --> {"k":"v"}
- */
-function akv2okv(a) {
-    var o = {};
-    o[a[0]] = a[1];
-    return o;
-}
-
-/**
- * @deprecated by lodash
- * @param func
- * @return {Function}
- */
-function curry(func) {
-    var curryArgs = [];
-    if (typeof func !== 'function') {
-        throw new Error('The first arguments must be function!');
-    }
-    for (var i = 1; i < arguments.length; i++) {
-        curryArgs[i - 1] = arguments[i];
-    }
-    return function () {
-        // convert arguments to array
-        var argsArr = Array.prototype.slice.call(arguments, 0);
-        curryArgs = curryArgs.concat(argsArr);
-        return func.apply(this, curryArgs);
-    }
-}
-
-
-/**
- * @deprecated by lodash
- * For each with return value
- * @param arr
- * @param fn
- * @returns {*}
- */
-function forEach(arr, fn) {
-    var i = 0, l = arr.length;
-    var result;
-    for (i = 0; i < l; ++i) {
-        result = fn(arr[i], i, arr);
-        if (result !== undefined) {
-            return result;
-        }
-    }
-    return null;
-}
-
-/**
- * @deprecated by lodash
- * forEach analogy for Objects
- * @param fn
- * @example each({1:1,2:2},function(v,i,a){console.log(v,i,a,'!!!');})
- */
-var oEach, each = Function.prototype.call.bind(oEach = function (context_fn, fn) {
-    var context;
-    if (arguments.length === 1) {
-        fn = context_fn;
-    } else if (arguments.length === 2) {
-        context = context_fn;
-    } else {
-        throw 'Too much arguments;';
-    }
-    // 'this' is given object
-    for (var index in this) {
-        if (this.hasOwnProperty(index)) {
-            var value = this[index],
-                array = this;
-            fn.call(context || this, value, index, array);
-        }
-    }
-    return this;
-});
-
-/**
- * @deprecated by lodash
- * $o(object) wrapper
- * @example $o({a:1,b:2}).each(function(el,prop,obj){console.log(el,prop);}); // --> a 1\n b 2
- * @param o object - wrapped object
- * @constructor
- */
-var ObjectProxy = function (o) {
-    this.obj = o;
-    //
-    // Wrapper methods
-    this.each = function (fn) {
-        (oEach.bind(this.obj))(fn);
-        return this;
-    }.bind(this);
-    this.copy = function () {
-        return Object.create(this.obj);
-    }.bind(this);
-    this.copyDeep = function clone() {
-        var obj = this.obj;
-        if (obj === null || typeof(obj) !== 'object') {
-            return obj;
-        }
-        var temp = obj.constructor(); // changed
-        this.each(function (el, key) {
-            temp[key] = $o(obj[key]).copyDeep();
-        });
-        return temp;
-    }.bind(this);
-    // put another methods here ...
-}, ObjectProxyConstruct = function (o) {
-    return new ObjectProxy(o);
-}, $o = ObjectProxyConstruct;
-
-/**
- * @deprecated by lodash
- * @param a
- * @constructor
- */
-var ArrayProxy = function (a) {
-    if (a) {
-        if (a instanceof Array) {
-            this.v = a;
-        }
-        else { // Convert array like object to array
-            this.v = [].slice.call(a);
-            if (!this.v) { // removed:  `|| !this.v.length` for preventing [[a]]
-                this.v = [a];
-            }
-        }
-    } else {
-        this.v = [];
-    }
-    this.each = Array.prototype.forEach.bind(this.v);
-    this.obj = akv2okv.bind(this, this.v); // curry once
-    this.fill = function (count, value) {
-        return this.v = new Array(1 + count).join(value).split('');
-    }.bind(this);
-    this.del = function (index) {
-        this.v.splice(index, 1);
-        return this;
-    }.bind(this);
-    this.uniq = function (arr) {
-        var hash = {}, outArr = [];
-        arr.forEach(function (el) {
-            if (!hash[el]) {
-                hash[el] = true;
-                outArr.push(el)
-            }
-        });
-        return outArr;
-    };
-    this.push = function (el) {
-        var newArray = $o(this.v).copyDeep();
-        newArray.push(el);
-        return newArray;
-    }.bind(this);
-    //
-    // get value copy of array
-    this.copy = function () {
-        return [].concat(this.v);
-    }.bind(this);
-    //
-    // ...
-}, ArrayProxyConstruct = function (o) {
-    return new ArrayProxy(o);
-}, $a = ArrayProxyConstruct;
 
 //
 // For $d, domProxy, $s see proxies
@@ -648,13 +504,12 @@ var Modal = {
      * @returns bool
      * @param blurSelector
      */
-    activate: function (/*=bool|function*/isSwitchOn, blurSelector) {
+    activate: function (/*=bool|function*/ isSwitchOn, blurSelector) {
         Modal.onClose = function () {
         };
         if (isSwitchOn === undefined) {
             isSwitchOn = true;
-        }
-        else if (typeof isSwitchOn == 'function') {
+        } else if (typeof isSwitchOn == 'function') {
             Modal.onClose = isSwitchOn;
             isSwitchOn = true;
         }
@@ -664,7 +519,9 @@ var Modal = {
         this.blurSelector = (!blurSelector) ? 'body>*:not(.modals)' : blurSelector;
         if (isSwitchOn) { // activate modal mode
             $('html').addClass('fixed'); // hide overflow
-            Modal._$shut = $('<div/>', {class: 'shut shut-modal'}).appendTo('body'); // open shut
+            Modal._$shut = $('<div/>', {
+                class: 'shut shut-modal'
+            }).appendTo('body'); // open shut
             $(this.blurSelector).addClass('bg-blur'); // blur background layer
             // Set esc event handler
             $('*').on('keydown.Modal', null, 'esc', function (event) {
@@ -680,8 +537,7 @@ var Modal = {
             slidepage && (slidepage.isPageFreeze = true);
             //
             Modal.isModal = true;
-        }
-        else {
+        } else {
             return Modal.deactivate();
         }
         //
@@ -703,20 +559,3 @@ var Modal = {
     }
 };
 
-
-function getFileSize(size) {
-    var i = Math.floor(Math.log(size) / Math.log(1024)); // https://en.wikipedia.org/wiki/Logarithm#Change_of_base
-    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
-}
-
-var $e = {
-    ENTER: 13,
-    /**
-     *
-     * @param e Event
-     * @returns {boolean}
-     */
-    isCtrlEnter: function (e) {
-        return (e.keyCode === $e.ENTER && e.ctrlKey);
-    }
-};
