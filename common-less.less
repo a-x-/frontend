@@ -37,8 +37,8 @@ h1, h2, h3 { .hn; }
 .justify-content(@horisontal:space-between, @vertical: flex-start) {
   -webkit-justify-content: @horisontal;
   justify-content: @horisontal;
-  align-items: @vertical;
   -webkit-align-items: @vertical;
+  align-items: @vertical;
 }
 
 //
@@ -103,11 +103,11 @@ h1, h2, h3 { .hn; }
  *
  * @param animation-name            --  Specifies the name of the @keyframes at-rule describing the animation's keyframes.
  * @param animation-duration        --  Configures the length of time that an animation should take to complete one cycle.
+ * @param animation-delay           --  Configures the delay between the time the element is loaded and the beginning of the animation sequence.
  * @param animation-timing-function     linear|ease|ease-in|ease-out|cubic-bezier(n,n,n,n)
  *                                  --  Configures the timing of the animation; that is, how the animation transitions through keyframes, by establishing acceleration curves.
- * @param animation-delay           --  Configures the delay between the time the element is loaded and the beginning of the animation sequence.
  * @param animation-iteration-count --  Configures the number of times the animation should repeat; you can specify infinite to repeat the animation indefinitely.
- * @param animation-direction           normal|reverse|alternate|alternate-reverse
+ * @param animation-direction       --  normal|reverse|alternate|alternate-reverse
  *                                  --  Configures whether or not the animation should alternate direction on each run through the sequence or reset to the start point and repeat itself.
  *                                      Example http://www.w3schools.com/cssref/playit.asp?filename=playcss_animation-direction&preval=alternate
  * @param animation-play-state          paused|running

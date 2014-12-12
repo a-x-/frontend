@@ -35,17 +35,6 @@ function makeClass(classObject) {
     return fn;
 }
 
-function getJSON(path, callback) {
-    var xhr2 = new XMLHttpRequest();
-    xhr2.overrideMimeType('application/json');
-    xhr2.onload = function (e) {
-        callback(JSON.parse(xhr2.responseText), this.status, this, e);
-    };
-    xhr2.open('GET', path, true);
-    xhr2.send();
-};
-
-
 //
 // Pretty cool wrappers
 //
@@ -76,9 +65,17 @@ var proxies = (function () {
                     }
                     args.unshift(this.v);
                     out = fn.apply(this, args);
-                    if (out !== undefined && this.chaining) {
-                        this.v = out;
-                    } // иначе при включенном chaining значение потеряется
+                    if (out !== undefined /*&& this.chaining*/) {
+                        if (
+                            out instanceof HTMLElement ||
+                            out instanceof NodeList ||
+                            out instanceof Array && out.length && out[0] instanceof HTMLElement ||
+                            out.toString() ==="[object domProxy]"
+                        )
+                            this.v = valuePreprocessor(out); // fn as a filter. pass element back into wrapper
+                        else
+                            return valuePostprocessor(out);
+                    }
                     return this.chaining ? this : (valuePostprocessor(this.v) || arguments[0]);
                 }.bind(this);
             }.bind(self);
@@ -120,11 +117,12 @@ var proxies = (function () {
                         this.show = statics.wrapFn(function (v) {
                             v.forEach(function (el) {
                                 el.classList.remove('stash');
+                                el.classList.remove('stash-force');
                             });
                         }.bind(this));
-                        this.stash = statics.wrapFn(function (v) {
+                        this.stash = statics.wrapFn(function (v, isForce) {
                             v.forEach(function (el) {
-                                el.classList.add('stash');
+                                el.classList.add(isForce ? 'stash-force': 'stash');
                             });
                         }.bind(this));
                         this.on = statics.wrapFn(function (v, events, callback, bubbling) {
@@ -145,14 +143,30 @@ var proxies = (function () {
                          * Find child by css query and callback
                          */
                         this.query = statics.wrapFn(function (v, query, callback) {
-                            v.forEach(function (el) {
-                                callback(el.querySelector(query), el);
+                            if (callback)
+                                v.forEach(function (el) {
+                                    callback(el.querySelector(query), el);
+                                });
+                            else
+                                return v.map(function (el) {
+                                    return el.querySelector(query);
+                                });
+                        }.bind(this));
+                        this.style = statics.wrapFn(function (v) {
+                            return v.map(function (el) {
+                                return getComputedStyle(el);
+                            });
+                        }.bind(this));
+                        this.visible = statics.wrapFn(function (v) {
+                            return v.map(function (el) {
+                                return $d(el).style().display !== 'none';
                             });
                         }.bind(this));
                         this.toString = function () {
                             return '[object domProxy]'
                         };
-                        d.prototype = HTMLElement.prototype;
+
+                        //d.prototype = HTMLElement.prototype;
                         //d.__proto__ = HTMLElement.prototype;
                         //d.setAttribute.call(d.el(), 'dfd','gfg')
                     }(d);
@@ -221,12 +235,17 @@ var proxies = (function () {
     $d = proxies.d;
 
 var $form = {
+    /**
+     * @todo rewrite with $ajax
+     * @todo check get method
+     * @param form
+     * @param callback
+     */
     send: function (form, callback) {
         var formData = new FormData(form);
-        var xhr2 = new XMLHttpRequest();
-        xhr2.open(form.method || 'post', form.action, true);
-        xhr2.onload = callback;
-        xhr2.send(formData);
+        var method = form.method || 'post';
+        var path = form.action;
+        $ajax[method](path, formData, callback);
     },
 
     /**
@@ -287,6 +306,7 @@ var $form = {
     }
 };
 
+
 /**
  * Make template processors if haystack described by box or variable enclosure
  * @param haystack String|HTMLElement|Function - box or variable enclosure or complete function
@@ -315,11 +335,9 @@ function delayedSetter(haystack, /**String=*/ key) {
     return processorCallback;
 }
 
-
 function getMeta(name) {
     return document.querySelector('meta[name="{1}"]'.format(name)).content;
 }
-
 
 function getShortDate() {
     var d = new Date();
@@ -329,23 +347,6 @@ function getShortDate() {
     return "{1}.{2}.{3}".format(curr_day, curr_month, curr_year);
 }
 
-
-function getFileSize(size) {
-    var i = Math.floor(Math.log(size) / Math.log(1024)); // https://en.wikipedia.org/wiki/Logarithm#Change_of_base
-    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
-}
-
-var $e = {
-    ENTER: 13,
-    /**
-     *
-     * @param e Event
-     * @returns {boolean}
-     */
-    isCtrlEnter: function (e) {
-        return (e.keyCode === $e.ENTER && e.ctrlKey);
-    }
-};
 
 //var $localStorage = Object.create(
 //    {},{}
@@ -559,3 +560,31 @@ var Modal = {
     }
 };
 
+
+function getFileSize(size) {
+    var i = Math.floor(Math.log(size) / Math.log(1024)); // https://en.wikipedia.org/wiki/Logarithm#Change_of_base
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+}
+
+var $e = {
+    ENTER: 13,
+    ESCAPE: 27,
+    SPACE: 32,
+    /**
+     *
+     * @param e Event
+     * @returns {boolean}
+     */
+    isEnter: function (e) {
+        return (e.keyCode === $e.ENTER);
+    },
+    isSpace: function(e){
+        return e.keyCode === $e.SPACE;
+    },
+    isCtrlEnter: function (e) {
+        return (e.keyCode === $e.ENTER && e.ctrlKey);
+    },
+    isEscape: function(e) {
+        return e.keyCode === $e.ESCAPE;
+    }
+};
