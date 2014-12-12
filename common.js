@@ -39,6 +39,55 @@ function makeClass(classObject) {
 // Pretty cool wrappers
 //
 
+
+$ajax = {
+    get: function (path, data, rawCallback, fail) {
+        if (arguments[1] instanceof  Function) { rawCallback = _.clone(arguments[1]); data = {}; }
+        var xhr2 = new XMLHttpRequest();
+        callback = function (e) {
+            var response = $ajax._getResponse(this);
+            rawCallback.call(this, response, this.status, this, e);
+        };
+        xhr2.onload = callback;
+        xhr2.onerror = fail || callback;
+        var query = URI().setSearch(data).search();
+        xhr2.open('GET', path + query, true);
+        xhr2.send();
+    },
+    post: function (path, rawData, rawCallback, fail) {
+        if (arguments[1] instanceof  Function) { callback = _.clone(arguments[1]); rawData = {}; }
+        var xhr2 = new XMLHttpRequest();
+        callback = function (e) {
+            var response = $ajax._getResponse(this);
+            rawCallback.call(this, response, this.status, this, e);
+        };
+        xhr2.onload = callback;
+        xhr2.onerror = fail || callback;
+        xhr2.open('POST', path, true);
+        if (_.isString(rawData)) data = rawData;
+        else if (rawData instanceof FormData) data = rawData;
+        else if (_.isPlainObject(rawData)) data = JSON.stringify(rawData);
+        xhr2.send(data);
+    },
+    put: function(){console.log('$ajax: no implemented')},
+    delete: function(){console.log('$ajax: no implemented')},
+    link:function(){console.log('$ajax: no implemented')},
+    unlink:function(){console.log('$ajax: no implemented')},
+    //
+    // Private methods
+    //
+    _getResponse: function (xhr2) {
+        return xhr2.getResponseHeader('Content-type') === 'application/json'
+            ? JSON.parse(xhr2.responseText) : xhr2.responseText;
+    }
+};
+
+
+
+//
+// Pretty cool wrappers
+//
+
 var proxies = (function () {
         var $ProxyStatics = function (self, valuePreprocessor, valuePostprocessor) {
             self.chaining = self.v !== undefined;
